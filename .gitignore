@@ -1,4 +1,5 @@
 backups/
+appadaemon/save/
 .cloud/
 .code-server/
 custom_components/
