@@ -15,18 +15,11 @@ homeassistant:
     - /config
   packages: !include_dir_named packages
 
-recorder:
-  purge_keep_days: 10
-  auto_purge: true
-  auto_repack: true
-
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
-http: !include http.yaml
 template: !include_dir_merge_list templates
 sensor: !include_dir_merge_list sensors
-# modbus: !include_dir_merge_list modbus
 
 powercalc:
 
@@ -41,12 +34,3 @@ logger:
 #     homeassistant.components.mammotion: debug
 #     custom_components.mammotion: debug
 #     pymammotion: debug
-
-# Notifications
-notify:
-  - name: "all_devices"
-    platform: group
-    services:
-      - action: mobile_app_iphone
-      - action: mobile_app_anns_ipad_air_5
-
