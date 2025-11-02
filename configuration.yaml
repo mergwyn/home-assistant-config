@@ -32,24 +32,6 @@ powercalc:
 
 prometheus:
 
-emoncms_history:
-  # TODO: move to secret
-  api_key: ad1ff8fa13c9b5a58cee93976fd583e6
-  url: https://emoncms.org
-  inputnode: 19
-  whitelist:
-    - sensor.samsung_ashp_dhw_status
-    - sensor.samsung_ashp_zone_heating_status
-    - sensor.samsung_ashp_heat_pump_outdoor_temperature
-    - sensor.samsung_ashp_heat_pump_energy_consumed_total
-    - sensor.samsung_ashp_heat_pump_energy_consumed_last_min
-    - sensor.samsung_ashp_heat_pump_heat_generated_total
-    - sensor.samsung_ashp_heat_pump_heat_generated_last_min
-    - sensor.samsung_ashp_flow_rate
-    - sensor.samsung_ashp_flow_temp
-    - sensor.samsung_ashp_flow_temp_return
-    - sensor.samsung_ashp_defrost_mode
-
 logger:
   default: warning
   # TODO: move to include file
