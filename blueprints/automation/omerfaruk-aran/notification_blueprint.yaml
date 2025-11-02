@@ -1,0 +1,261 @@
+blueprint:
+  name: Samsung AC Error Notification
+  description: 'This blueprint monitors a selected sensor for specific error codes
+    from Samsung AC units  and sends notifications to a chosen device with a detailed
+    error message.
+
+    '
+  domain: automation
+  input:
+    sensor_entity:
+      name: Error Code Sensor
+      description: The sensor that monitors the AC error codes.
+      selector:
+        entity:
+          domain:
+          - sensor
+          multiple: false
+    notify_device:
+      name: Device to notify
+      description: Device needs to run the official Home Assistant app to receive
+        notifications.
+      selector:
+        device:
+          integration: mobile_app
+          multiple: false
+    is_ios:
+      name: Is it an iOS device?
+      description: Toggle if your selected device runs iOS, default is Android.
+      selector:
+        boolean: {}
+      default: false
+    notification_title:
+      name: Notification title (Optional)
+      description: 'Default: "Samsung AC Error Detected"'
+      default: Samsung AC Error Detected
+    notification_message:
+      name: Notification message (Optional)
+      description: 'Default: {{ error_code }} : {{ error_message }}'
+      default: '{{ error_code }} : {{ error_message }}'
+  source_url: https://raw.githubusercontent.com/omerfaruk-aran/esphome_samsung_ac_blueprint/main/blueprints/automation/esphome_samsung_ac/notification_blueprint.yaml
+trigger:
+  platform: state
+  entity_id: !input sensor_entity
+variables:
+  error_code: '{{ states[trigger.entity_id].state }}'
+  error_message: "{% if error_code == 0 %}\n  All AC units are operating normally.
+    No errors detected.\n{% elif error_code == \"unavailable\" %}\n  The device is
+    currently offline. Please check the connection.\n{% elif error_code == 101 %}\n
+    \ Indoor unit communication error. Indoor unit cannot receive any data from the
+    outdoor unit.\n{% elif error_code == 102 %}\n  Communication error between indoor
+    unit and outdoor unit. Displayed in indoor unit.\n{% elif error_code == 108 %}\n
+    \ Error due to repeated address setting (When 2 or more devices have the same
+    address within the system).\n{% elif error_code == 110 %}\n  Communication error
+    between Hydro unit HT (Main PBA) and Control kit PBA (Detection from the Control
+    kit).\n{% elif error_code == 120 %}\n Short- or open-circuit error of the room
+    temperature sensor of the Zone 2 indoor unit (detected only when the room thermostat
+    is used).\n{% elif error_code == 121 %}\n  Error on indoor temperature sensor
+    of indoor unit (Short or Open).\n{% elif error_code == 122 %}\n  Error on EVA
+    IN sensor of indoor unit (Short or Open).\n{% elif error_code == 123 %}\n  Error
+    on EVA OUT sensor of indoor unit (Short or Open).\n{% elif error_code == 128 %}\n
+    \ EVA IN temperature sensor of indoor unit is detached from EVA IN pipe.\n{% elif
+    error_code == 129 %}\n  EVA OUT temperature sensor of indoor unit is detached
+    from EVA OUT pipe.\n{% elif error_code == 130 %}\n  Heat exchanger in/out sensors
+    of indoor unit are detached.\n{% elif error_code == 135 %}\n  RPM feedback error
+    of indoor unit's cleaning fan.\n{% elif error_code == 151 %}\n  Error due to opened
+    EEV of indoor unit (2nd detection).\n{% elif error_code == 152 %}\n  Error due
+    to closed EEV of indoor unit (2nd detection).\n{% elif error_code == 153 %}\n
+    \ Error on floating switch of indoor unit (2nd detection).\n{% elif error_code
+    == 154 %}\n  RPM feedback error of indoor unit.\n{% elif error_code == 161 %}\n
+    \ Mixed operation mode error of indoor unit; When the outdoor unit is getting
+    ready to operate in cooling (or heating) and some of the indoor unit is trying
+    to operate in heating (or cooling) mode.\n{% elif error_code == 162 %}\n  EEPROM
+    error of MICOM (Physical problem of parts/circuit).\n{% elif error_code == 163
+    %}\n  Indoor unit's remote controller option input is incorrect or missing. Outdoor
+    unit EEPROM data error.\n{% elif error_code == 180 %}\n  Simultaneous opening
+    of cooling/heating MCU SOL V/V (1st detection).\n{% elif error_code == 181 %}\n
+    \ Simultaneous opening of cooling/heating MCU SOL V/V (2nd detection).\n{% elif
+    error_code == 185 %}\n  Cross wiring error between communication and power cable
+    of indoor unit.\n{% elif error_code == 186 %}\n  Connection error or problem on
+    SPi.\n{% elif error_code == 190 %}\n  No temperature changes in EVA IN during
+    pipe inspection or changes in temperature in the indoor unit with wrong address.\n{%
+    elif error_code == 191 %}\n  No temperature changes in EVA OUT during pipe inspection
+    or changes in temperature in the indoor unit with wrong address.\n{% elif error_code
+    == 198 %}\n  Error due to disconnected thermal fuse of indoor unit.\n{% elif error_code
+    == 201 %}\n  Communication error between indoor and outdoor units (installation
+    number setting error, repeated indoor unit address, indoor unit communication
+    cable error).\n{% elif error_code == 202 %}\n  Communication error between indoor
+    and outdoor units (Communication error on all indoor units, outdoor unit communication
+    cable error).\n{% elif error_code == 203 %}\n  Communication error between main
+    and sub outdoor units.\n{% elif error_code == 205 %}\n  Communication error on
+    all PBA within the outdoor unit C-Box, communication cable error.\n{% elif error_code
+    == 206 %}\n  HUB PBA communication error / FAN PBA communication error / INV1
+    PBA communication error / INV2 PBA communication error.\n{% elif error_code ==
+    211 %}\n  When single indoor unit uses 2 MCU ports that are not in series.\n{%
+    elif error_code == 212 %}\n  If the rotary switch (on the MCU) for address setting
+    of the indoor unit has 3 or more of the same address.\n{% elif error_code == 213
+    %}\n  When total number of indoor units assigned to MCU is the same as the actual
+    number of installed indoor units but there is an indoor unit that is not installed
+    even though it is assigned on MCU.\n{% elif error_code == 214 %}\n  When the number
+    of MCU is not set correctly on the outdoor unit or when two or more MCUs were
+    installed and some of them have the same address.\n{% elif error_code == 215 %}\n
+    \ When two different MCUs have the same address value on the rotary switch.\n{%
+    elif error_code == 216 %}\n  When the indoor unit is not installed to an MCU port
+    but the switch on the port is set to On.\n{% elif error_code == 217 %}\n  When
+    the indoor unit is connected to an MCU port but the indoor unit is assigned to
+    an MCU and the switch on the port is set to Off.\n{% elif error_code == 218 %}\n
+    \ When there’s at least one or more actual number of indoor unit connections compared
+    to the number of indoor units assigned to MCU.\n{% elif error_code == 219 %}\n
+    \ Error on temperature sensor located on MCU intercooler inlet (Short or Open).\n{%
+    elif error_code == 220 %}\n  Error on temperature sensor located on MCU intercooler
+    outlet (Short or Open).\n{% elif error_code == 221 %}\n  Error on outdoor temperature
+    sensor of the outdoor unit (Short or Open).\n{% elif error_code == 231 %}\n  Error
+    on COND OUT temperature sensor of the main outdoor unit (Short or Open).\n{% elif
+    error_code == 241 %}\n  COND OUT sensor is detached.\n{% elif error_code == 251
+    %}\n  Error on discharge temperature sensor of compressor 1 (Short or Open).\n{%
+    elif error_code == 257 %}\n  Error on discharge temperature sensor of compressor
+    2 (Short or Open).\n{% elif error_code == 262 %}\n  Discharge temperature sensor
+    of compressor 1 is detached from the sensor holder on the pipe.\n{% elif error_code
+    == 263 %}\n  Discharge temperature sensor of compressor 2 is detached from the
+    sensor holder on the pipe.\n{% elif error_code == 266 %}\n  Top sensor of compressor
+    1 is detached.\n{% elif error_code == 267 %}\n  Top sensor of compressor 2 is
+    detached.\n{% elif error_code == 269 %}\n  Suction temperature sensor is detached
+    from the sensor holder on the pipe.\n{% elif error_code == 276 %}\n  Error on
+    top sensor of compressor 1 (Short or Open).\n{% elif error_code == 277 %}\n  Error
+    on top sensor of compressor 2 (Short or Open).\n{% elif error_code == 291 %}\n
+    \ Refrigerant leakage or error on high pressure sensor (Short or Open).\n{% elif
+    error_code == 296 %}\n  Refrigerant leakage or error on low pressure sensor (Short
+    or Open).\n{% elif error_code == 308 %}\n  Error on suction temperature sensor
+    (Short or Open).\n{% elif error_code == 311 %}\n  Error on temperature sensor
+    of double-layer pipe/liquid pipe (sub heat exchanger) (Short or Open).\n{% elif
+    error_code == 320 %}\n  OLP sensor error.\n{% elif error_code == 321 %}\n  Error
+    on EVI (ESC) IN temperature sensor (Short or Open).\n{% elif error_code == 322
+    %}\n  Error on EVI (ESC) OUT temperature sensor (Short or Open).\n{% elif error_code
+    == 323 %}\n  Error on suction sensor 2 (Short or Open).\n{% elif error_code ==
+    346 %}\n  Error due to operation failure of Fan2.\n{% elif error_code == 347 %}\n
+    \ Motor wire of Fan2 is not connected.\n{% elif error_code == 348 %}\n  Lock error
+    on Fan2 of the outdoor unit.\n{% elif error_code == 353 %}\n  Error due to overload
+    motor of the outdoor unit's Fan2.\n{% elif error_code == 355 %}\n  Error due to
+    overheated IPM of Fan2.\n{% elif error_code == 361 %}\n  Error due to operation
+    failure of inverter compressor 2.\n{% elif error_code == 364 %}\n  Error due to
+    over-current of inverter compressor 2.\n{% elif error_code == 365 %}\n  V-limit
+    error of inverter compressor 2.\n{% elif error_code == 366 %}\n  Error due to
+    over-voltage / low voltage of inverter PBA2.\n{% elif error_code == 367 %}\n  Error
+    due to unconnected wire of compressor 2.\n{% elif error_code == 368 %}\n  Output
+    current sensor error of inverter PBA2.\n{% elif error_code == 369 %}\n  DC voltage
+    sensor error of inverter PBA2.\n{% elif error_code == 374 %}\n  Heat sink temperature
+    sensor error of inverter PBA2.\n{% elif error_code == 376 %}\n  Error due to over-current
+    of Fan2.\n{% elif error_code == 378 %}\n  Error due to input current of inverter
+    2.\n{% elif error_code == 386 %}\n  Over-voltage/low-voltage error of Fan2.\n{%
+    elif error_code == 387 %}\n  Hall IC connection error of Fan2.\n{% elif error_code
+    == 389 %}\n  V-limit error on Fan2 of compressor.\n{% elif error_code == 393 %}\n
+    \ Output current sensor error of Fan2.\n{% elif error_code == 396 %}\n  DC voltage
+    sensor error of Fan2.\n{% elif error_code == 399 %}\n  Heat sink temperature sensor
+    error of Fan2.\n{% elif error_code == 400 %}\n  Error due to overheat caused by
+    contact failure on IPM of Inverter PBA2.\n{% elif error_code == 403 %}\n  Detection
+    of OUTDOOR UNIT compressor freezing (During cooling operation).\n{% elif error_code
+    == 404 %}\n  Protection of OUTDOOR UNIT when it is overloaded (during Safety,
+    Start, Normal operation state).\n{% elif error_code == 407 %}\n  Compressor operation
+    stop due to high pressure protection control.\n{% elif error_code == 410 %}\n
+    \ Compressor operation stop due to low pressure protection control or refrigerant
+    leakage.\n{% elif error_code == 413 %}\n  Compressor operation stop due to discharge
+    temperature protection control.\n{% elif error_code == 416 %}\n  Discharge of
+    a compressor is overheated.\n{% elif error_code == 425 %}\n  Phase reversal or
+    phase failure (3φ outdoor unit wiring, R-S-T-N ), connection error on 3 phase
+    input.\n{% elif error_code == 428 %}\n  Compressor operation stop due to abnormal
+    compression ratio.\n{% elif error_code == 438 %}\n  EVI (ESC) EEV leakage or internal
+    leakage of intercooler or incorrect connector insertion of EVI (ESC) EEV.\n{%
+    elif error_code == 439 %}\n  Error due to refrigerant leakage.\n{% elif error_code
+    == 440 %}\n  Heating mode restriction due to high air temperature.\n{% elif error_code
+    == 441 %}\n  Cooling mode restriction due to low air temperature.\n{% elif error_code
+    == 442 %}\n  Refrigerant charging restriction in heating mode when air temperature
+    is over 15 °C.\n{% elif error_code == 443 %}\n  Operation prohibited due to the
+    pressure drop.\n{% elif error_code == 445 %}\n  CCH is detached.\n{% elif error_code
+    == 446 %}\n  Error due to operation failure of Fan1.\n{% elif error_code == 447
+    %}\n  Motor wire of Fan1 is not connected.\n{% elif error_code == 448 %}\n  Lock
+    error on Fan1.\n{% elif error_code == 452 %}\n  Error due to ZPC detection circuit
+    problem or power failure.\n{% elif error_code == 453 %}\n  Error due to overheated
+    motor of outdoor unit's Fan1.\n{% elif error_code == 455 %}\n  Error due to overheated
+    IPM of Fan1.\n{% elif error_code == 458 %}\n  OUTDOOR UNIT fan1 error\n{% elif
+    error_code == 461 %}\n  Error due to operation failure of inverter compressor
+    1.\n{% elif error_code == 462 %}\n  Compressor stop due to full current control
+    or error due to low current on CT2.\n{% elif error_code == 463 %}\n  OLP is overheated.\n{%
+    elif error_code == 464 %}\n  Error due to over-current of inverter compressor
+    1.\n{% elif error_code == 465 %}\n  V-limit error of inverter compressor 1.\n{%
+    elif error_code == 466 %}\n  Error due to over voltage / low voltage of inverter
+    PBA1.\n{% elif error_code == 467 %}\n  Error due to unconnected wire of compressor
+    1.\n{% elif error_code == 468 %}\n  Output current sensor error of inverter PBA1.\n{%
+    elif error_code == 469 %}\n  DC voltage sensor error of inverter PBA1.\n{% elif
+    error_code == 470 %}\n  Outdoor unit EEPROM Read/Write Error.\n{% elif error_code
+    == 471 %}\n  Outdoor unit EEPROM Read/Write Error (OTP error).\n{% elif error_code
+    == 474 %}\n  Heat sink temperature sensor error of inverter PBA1.\n{% elif error_code
+    == 475 %}\n  OUTDOOR UNIT fan2 error.\n{% elif error_code == 478 %}\n  Error due
+    to overcurrent of Fan1.\n{% elif error_code == 482 %}\n  Error due to input current
+    of inverter 1.\n{% elif error_code == 484 %}\n  PFC Overload Error.\n{% elif error_code
+    == 485 %}\n  Input current sensor error.\n{% elif error_code == 486 %}\n  Error
+    due to over voltage / low voltage of Fan1.\n{% elif error_code == 487 %}\n  Hall
+    IC error of Fan1.\n{% elif error_code == 489 %}\n  V-limit error on Fan1 of compressor.\n{%
+    elif error_code == 493 %}\n  Output current sensor error of Fan1.\n{% elif error_code
+    == 496 %}\n  DC voltage sensor error of Fan1.\n{% elif error_code == 499 %}\n
+    \ Heat sink temperature sensor error of Fan1.\n{% elif error_code == 500 %}\n
+    \ Error due to overheat caused by contact failure on IPM of Inverter PBA1.\n{%
+    elif error_code == 503 %}\n  Error due to alert the user to check if the service
+    valve is closed.\n{% elif error_code == 504 %}\n  Error due to self-diagnosis
+    of compressor operation.\n{% elif error_code == 505 %}\n  Error due to self-diagnosis
+    of high pressure sensor.\n{% elif error_code == 506 %}\n  Error due to self-diagnosis
+    of low pressure sensor.\n{% elif error_code == 554 %}\n  Gas leak error.\n{% elif
+    error_code == 560 %}\n  Outdoor unit's option switch setting error (when inappropriate
+    option switch is on).\n{% elif error_code == 563 %}\n  Error due to module installation
+    of indoor unit with old version (Micom version needs to be updated).\n{% elif
+    error_code == 573 %}\n  Error due to using single type outdoor unit in a module
+    installation.\n{% elif error_code == 601 %}\n  Communication error between remote
+    controller and the DVM Hydro unit / Hydro unit HT.\n{% elif error_code == 602
+    %}\n  Communication error between master and slave remote controller.\n{% elif
+    error_code == 604 %}\n  Tracking error between remote controller and the DVM Hydro
+    unit / Hydro unit HT.\n{% elif error_code == 607 %}\n  Communication error between
+    the Master and Slave wired remote controllers.\n{% elif error_code == 618 %}\n
+    \ Error due to exceeding maximum numbers of Hydro unit installation (16 units).\n{%
+    elif error_code == 627 %}\n  Error due to exceeding maximum numbers of wired remote
+    controller installation (2 units).\n{% elif error_code == 633 %}\n  Error caused
+    by installing mixed models.\n{% elif error_code == 635 %}\n  Remote controller's
+    temperature sensor is disconnected or has a problem.\n{% elif error_code == 654
+    %}\n  Data error on remote controller (Memory read/write error).\n{% elif error_code
+    == 702 %}\n  Error due to closed EEV of indoor unit (1st detection).\n{% elif
+    error_code == 703 %}\n  Error due to opened EEV of indoor unit (1st detection).\n{%
+    elif error_code == 899 %}\n  Short- or open-circuit error of the Zone 1 water-out
+    temperature sensor.\n{% elif error_code == 900 %}\n  Short- or open-circuit error
+    of the Zone 2 water-out temperature sensor.\n{% elif error_code == 901 %}\n  Error
+    on the sensor of water inlet pipe (Short or Open).\n{% elif error_code == 902
+    %}\n  Error on the sensor of water outlet pipe (Short or Open).\n{% elif error_code
+    == 903 %}\n  Water outlet (backup heater) temperature sensor error.\n{% elif error_code
+    == 904 %}\n  Error on water tank (Short or open).\n{% elif error_code == 906 %}\n
+    \ Outdoor evaporator inlet temperature sensor (open/short).\n{% elif error_code
+    == 907 %}\n  Error due to pipe rupture protection.\n{% elif error_code == 908
+    %}\n  Error due to freeze prevention (Re-operation is possible).\n{% elif error_code
+    == 909 %}\n  Error due to freeze prevention (Re-operation is impossible).\n{%
+    elif error_code == 910 %}\n  Water temperature sensor on water outlet pipe is
+    detached.\n{% elif error_code == 911 %}\n  Flow switch off error, when the switch
+    is turned off within 10 seconds after a pump starts its operation (Re-operation
+    is possible).\n{% elif error_code == 912 %}\n  Normal flow rate error.\n{% elif
+    error_code == 913 %}\n  Six times detection for Flow Switch Error (Re-operation
+    is not possible).\n{% elif error_code == 914 %}\n  Error due to incorrect thermostat
+    connection.\n{% elif error_code == 915 %}\n  Error on DC fan (Non-operating).\n{%
+    elif error_code == 916 %}\n  Mixing valve temperature sensor (open/short).\n{%
+    elif error_code == 919 %}\n  Set temperature for disinfection operation not reached,
+    or, after reaching the temperature, failed to continue for the requested time.\n{%
+    elif error_code == \"unknown\" %} {% else %}\n  Unknown error code: {{ error_code
+    }}. Please refer to the AC unit's manual.\n{% endif %}\n"
+  is_ios: !input is_ios
+  notification_title: !input notification_title
+  notification_message: !input notification_message
+action:
+- device_id: !input notify_device
+  domain: mobile_app
+  type: notify
+  title: '{{ notification_title }}'
+  message: '{{ notification_message }}'
+  data: '{% set ios_data = {} %} {% set android_data = {} %} {{ ios_data if is_ios
+    else android_data }}
+
+    '
+mode: single

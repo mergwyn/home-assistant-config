@@ -1,0 +1,1191 @@
+- id: Car_not_plugged_in_at_bedtime
+  alias: 'Car not plugged in at bedtime '
+  triggers:
+  - at: '21:00:00'
+    trigger: time
+  conditions:
+  - condition: state
+    entity_id: sensor.my_volkswagen_plug_connection_state
+    state: disconnected
+  - condition: numeric_state
+    entity_id: sensor.my_volkswagen_state_of_charge
+    below: 60
+    enabled: false
+  - condition: state
+    entity_id: device_tracker.my_volkswagen_tracker
+    state: home
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  actions:
+  - data:
+      message: Car is below 60% and not plugged in to charge
+    action: notify.all_devices
+  mode: single
+- id: '1689698354261'
+  alias: Solcast_update
+  description: New API call Solcast
+  trigger:
+  - platform: time_pattern
+    minutes: '7'
+    seconds: '33'
+    hours: /3
+  condition: []
+  action:
+  - delay:
+      seconds: '{{ range(30, 360)|random|int }}'
+  - service: solcast_solar.update_forecasts
+    data: {}
+  mode: single
+- id: '1690125172197'
+  alias: Start solar charge
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - device_tracker.my_id_3_tracker
+    to: home
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  - platform: time
+    at: 09:00:00
+  - platform: numeric_state
+    entity_id: sensor.solis_remaining_battery_capacity
+    above: 98
+  condition:
+  - condition: sun
+    before: sunset
+    after: sunrise
+  - condition: numeric_state
+    entity_id: sensor.my_id_3_state_of_charge
+    below: 80
+  - condition: numeric_state
+    entity_id: sensor.forecast_remaining_today
+    above: 3
+  - condition: numeric_state
+    entity_id: sensor.solis_remaining_battery_capacity
+    above: 95
+  - condition: state
+    entity_id: device_tracker.my_id_3_tracker
+    state: home
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: sensor.my_id_3_charging_state
+      state: charging
+  action:
+  - if:
+    - condition: state
+      entity_id: sensor.my_id_3_plug_connection_state
+      state: connected
+    then:
+    - service: button.press
+      data: {}
+      target:
+        entity_id: button.my_id_3_start_charging
+    - service: notify.all_devices
+      data:
+        message: Auto charging started (car:{{ states('sensor.my_id_3_state_of_charge')
+          }}%, battery:{{states('sensor.solis_remaining_battery_capacity')}}%, remaining
+          forecast:{{states('sensor.forecast_remaining_today')}}kWh)"
+    else:
+    - service: notify.all_devices
+      data:
+        message: Good solar forecast but car not plugged in (car:{{ states('sensor.my_id_3_state_of_charge')
+          }}%, battery:{{states('sensor.solis_remaining_battery_capacity')}}%, remaining
+          forecast:{{states('sensor.forecast_remaining_today')}}kWh)"
+  mode: single
+- id: '1690213949634'
+  alias: Stop solar charge
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.solis_remaining_battery_capacity
+    below: 95
+  - platform: numeric_state
+    entity_id: sensor.forecast_remaining_today
+    below: 2
+  condition:
+  - condition: numeric_state
+    entity_id: sensor.solis_remaining_battery_capacity
+    below: 95
+  - condition: state
+    entity_id: device_tracker.my_id_3_tracker
+    state: home
+  - condition: state
+    entity_id: sensor.my_id_3_charging_state
+    state: charging
+  - condition: sun
+    before: sunset
+    after: sunrise
+  action:
+  - service: notify.all_devices
+    data:
+      message: Auto charging stopped (car:{{ states('sensor.my_id_3_state_of_charge')
+        }}%, battery:{{states('sensor.solis_remaining_battery_capacity')}}%, remaining
+        forecast:{{states('sensor.forecast_remaining_today')}}kWh)
+  - service: button.press
+    data: {}
+    target:
+      entity_id: button.my_id_3_stop_charging
+  mode: single
+- id: '1695742406464'
+  alias: 'AutoBackup: Daily Backup'
+  description: ''
+  trigger:
+    platform: time
+    at: 02:30:00
+  condition:
+    condition: time
+    weekday:
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
+  action:
+    service: auto_backup.backup_full
+    data:
+      name: 'DailyBackup: {{ now().strftime(''%A, %B %-d, %Y'') }}'
+      keep_days: 7
+- id: '1695742480514'
+  alias: 'AutoBackup: Weekly Backup'
+  description: ''
+  trigger:
+  - platform: time
+    at: 02:30:00
+  condition:
+  - condition: time
+    weekday:
+    - mon
+  action:
+  - service: auto_backup.backup_full
+    data:
+      name: 'WeeklyBackup: {{ now().strftime(''%A, %B %-d, %Y'') }}'
+      keep_days: 14
+- id: '1697810951630'
+  alias: Zappi start boost charge
+  description: Needed to fix ID3 "charging delayed" issue
+  triggers:
+  - entity_id:
+    - sensor.myenergi_zappi_24876502_status
+    to: Boosting
+    for:
+      hours: 0
+      minutes: 2
+      seconds: 0
+    trigger: state
+  conditions:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_plug_status
+      state: Waiting for EV
+      for:
+        hours: 0
+        minutes: 2
+        seconds: 0
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_plug_status
+      state: EV Connected
+      for:
+        hours: 0
+        minutes: 2
+        seconds: 0
+  - condition: not
+    conditions:
+    - condition: device
+      device_id: aa6bc65a79469914908d8112506036e5
+      domain: select
+      entity_id: 4c65227b1c8871981a23aed1af73607e
+      type: selected_option
+      option: Stopped
+  actions:
+  - repeat:
+      sequence:
+      - data:
+          message: Zappi status is "Boosting" attempt {{repeat.index}} to start charge
+        enabled: false
+        action: notify.all_devices
+      - data: {}
+        target:
+          entity_id: button.my_id_3_start_charging
+        action: button.press
+      - delay:
+          hours: 0
+          minutes: 1
+          seconds: 30
+          milliseconds: 0
+      until:
+      - condition: template
+        value_template: "{{ (states('sensor.myenergi_zappi_24876502_plug_status')
+          == \"Charging\") or\n    repeat.index == 10 }}"
+  - if:
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_plug_status
+      state: Charging
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 0
+    then:
+    - data:
+        message: Zappi has succesfuly started boost
+      action: notify.all_devices
+    else:
+    - data:
+        message: Zappi failed to start boost
+      action: notify.all_devices
+  mode: single
+- id: '1697814549000'
+  alias: Zappi reset car for eco+
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.myenergi_zappi_24876502_status
+    to: Conpleted
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  condition:
+  - condition: state
+    entity_id: sensor.myenergi_zappi_24876502_status
+    state: Paused
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_status
+      state: Paused
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_status
+      state: Completed
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 0
+  - condition: state
+    entity_id: sensor.myenergi_zappi_24876502_plug_status
+    state: EV connected
+  - condition: state
+    entity_id: select.myenergi_zappi_24876502_charge_mode
+    state: Eco+
+  action:
+  - service: notify.all_devices
+    data:
+      message: Zappi mode is "Eco+" but status is "Paused" and "Waiting for EV", trying
+        to wake up car
+  - service: select.select_option
+    data:
+      option: Stopped
+    target:
+      entity_id: select.myenergi_zappi_24876502_charge_mode
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 20
+      milliseconds: 0
+  - service: select.select_option
+    data:
+      option: Eco+
+    target:
+      entity_id: select.myenergi_zappi_24876502_charge_mode
+  mode: single
+- id: '1702199064765'
+  alias: Reduced current set for overnight charge
+  description: ''
+  trigger:
+  - platform: time
+    at: '21:00:00'
+  condition:
+  - condition: state
+    entity_id: sensor.my_id_3_max_charge_current_ac
+    state: Reduced
+  - condition: state
+    entity_id: sensor.my_id_3_plug_connection_state
+    state: Connected
+  action:
+  - service: notify.all_devices
+    data:
+      message: Car plugged in to charge with reduced AC charge set
+  mode: single
+- id: '1702282466295'
+  alias: Check car ready for charging
+  description: ''
+  triggers:
+  - at: '21:00:00'
+    trigger: time
+  conditions:
+  - condition: or
+    conditions:
+    - condition: not
+      conditions:
+      - condition: state
+        state: ReadyForCharging
+        entity_id: sensor.my_volkswagen_charging_state
+        for:
+          hours: 0
+          minutes: 2
+          seconds: 0
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: sensor.my_volkswagen_plug_connection_state
+        state: Connected
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_plug_status
+      state: Fault
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 0
+  actions:
+  - data:
+      message: 'Car plugged in to charge but car not ready for charging '
+    action: notify.all_devices
+  mode: single
+- id: '1707388847637'
+  alias: Automatic Backups
+  description: ''
+  use_blueprint:
+    path: jcwillox/automatic_backups.yaml
+    input:
+      enable_hourly: true
+      enable_yearly: false
+      enable_monthly: false
+      use_action_hourly: false
+      enable_daily: true
+      enable_weekly: true
+      backup_action:
+      - data:
+          name: '{{ name }}'
+          password: '{{ password }}'
+          keep_days: '{{ keep_days }}'
+          include_folders:
+          - config
+        action: auto_backup.backup
+        enabled: true
+      backup_name: "{{ backup_type | title }}Backup: {{\n  now().strftime(\n    \"%A,
+        \"\n    ~ iif(backup_type == \"hourly\", \"%-I:%M %p, \", \"\")\n    ~ \"%B
+        %-d, %Y\"\n  )\n}}\n{# HourlyBackup: Monday, 3:04 PM, January 2, 2006 #}\n{#
+        DailyBackup: Monday, January 2, 2006 #}\n"
+- id: '1707400244849'
+  alias: Octopus Energy - Join Saving Session
+  description: ''
+  use_blueprint:
+    path: BottlecapDave/octopus_energy_octoplus_join_saving_session.yml.yaml
+    input:
+      saving_session_event_entity: event.octopus_energy_a_281ee75f_octoplus_saving_session_events
+- id: '1707845246436'
+  alias: Boost Zappi to Car Charge Limit (in Eco+ Mode)
+  description: Boost Zappi to Car Charge Limit (in Eco+ Mode)
+  trigger:
+  - platform: template
+    id: 'on'
+    value_template: "{% set ns=namespace() %} //Enable this template for UK low carbon
+      charging, or optimal price if you're on Agile Octopus tariff\n{% set ns.flag=false
+      %} //Install the (tricky) prereqs from https://community.home-assistant.io/t/octopus-agile-display-tariff-in-graphs-tables-best-import-export-periods-all-done-using-node-red-and-jsonata/518762\n{%
+      for event in state_attr('sensor.octopus_agile_sequence_table_2', 'import_array')%}\n
+      \ {% set ontime=(as_timestamp(event.from)|int-as_timestamp(now())|int) %}\n
+      \ {% set ns.flag = ns.flag or ( 0 < ontime < 120) %}\n{% endfor %}\n{{ns.flag}}
+      \n"
+    enabled: false
+  - platform: state
+    entity_id:
+    - input_boolean.boost_zappi
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - service: select.select_option
+    metadata: {}
+    data:
+      option: Eco+
+    target:
+      entity_id: select.myenergi_zappi_xxxxxxx_charge_mode
+  - delay: 00:01:00
+  - service: myenergi.myenergi_boost
+    data:
+      amount: "\n{{ \n    [\n    ( ( ( states ('number.charge_limit') | float ) -
+        ( states('sensor.battery') | float ) ) \n    * 0.75 ) \n    | round(0)\n    ,
+        1.0 ] | max\n    + states('sensor.myenergi_zappi_xxxxxxx_charge_added_session')
+        | float(0)\n}}  "
+    target:
+      device_id: 40061624ae5856a2c3442b6b1c4ab5
+  mode: single
+- id: '1708858213473'
+  alias: Zappi protect battery
+  description: Stop boost if battery discharging
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.myenergi_zappi_24876502_status
+    to:
+    - Boosting
+    - Charging
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 60
+  condition:
+  - condition: state
+    entity_id: binary_sensor.battery_discharging
+    state: 'on'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  action:
+  - repeat:
+      sequence:
+      - service: myenergi.myenergi_stop_boost
+        target:
+          device_id: aa6bc65a79469914908d8112506036e5
+        data: {}
+      - service: button.press
+        data: {}
+        target:
+          entity_id: button.my_id_3_stop_charging
+      - service: notify.all_devices
+        data:
+          message: Zappi status is "Boosting" attempt {{repeat.index}} while battery
+            is discharging, stopping boost
+        enabled: true
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 30
+          milliseconds: 0
+      until:
+      - condition: template
+        value_template: "{{ (states('sensor.myenergi_zappi_24876502_plug_status')
+          != \"Charging\") or\n    repeat.index == 10 }}"
+  - if:
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_plug_status
+      state: Charging
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 0
+    then:
+    - service: notify.all_devices
+      data:
+        message: Zappi has failed to stop boost
+    else:
+    - service: notify.all_devices
+      data:
+        message: Zappi successfully stopped boost
+  mode: single
+- id: '1709481001715'
+  alias: Protect battery from EV charge
+  description: Stop boost if battery discharging
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.battery_discharging
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_status
+      state: Charging
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 30
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_status
+      state: Boosting
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 30
+  action:
+  - repeat:
+      sequence:
+      - service: button.press
+        data: {}
+        target:
+          entity_id: button.my_id_3_stop_charging
+      - service: notify.all_devices
+        data:
+          message: Zappi status is "Boosting" attempt {{repeat.index}} while battery
+            is discharging, stopping boost
+        enabled: true
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 30
+          milliseconds: 0
+      until:
+      - condition: template
+        value_template: "{{ (states('sensor.myenergi_zappi_24876502_plug_status')
+          != \"Charging\") or\n    repeat.index == 10 }}"
+  - if:
+    - condition: state
+      entity_id: sensor.myenergi_zappi_24876502_plug_status
+      state: Charging
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 0
+    then:
+    - service: notify.all_devices
+      data:
+        message: Zappi has failed to stop boost
+    else:
+    - service: notify.all_devices
+      data:
+        message: Zappi successfully stopped boost
+  mode: single
+- id: '1709544236613'
+  alias: Set zappi to stopped at sunrise
+  description: ''
+  triggers:
+  - event: sunrise
+    offset: 0
+    trigger: sun
+  conditions: []
+  actions:
+  - device_id: aa6bc65a79469914908d8112506036e5
+    domain: select
+    entity_id: 4c65227b1c8871981a23aed1af73607e
+    type: select_option
+    option: Stopped
+  mode: single
+- id: '1709544286843'
+  alias: Set zappi to eco+ at sunset
+  description: ''
+  triggers:
+  - event: sunset
+    offset: 0
+    trigger: sun
+  conditions: []
+  actions:
+  - device_id: aa6bc65a79469914908d8112506036e5
+    domain: select
+    entity_id: 4c65227b1c8871981a23aed1af73607e
+    type: select_option
+    option: Eco+
+  mode: single
+- id: '1711655697777'
+  alias: 'Z test start boost '
+  description: ''
+  trigger: []
+  condition: []
+  action:
+  - service: myenergi.myenergi_boost
+    target:
+      device_id: aa6bc65a79469914908d8112506036e5
+    data:
+      amount: 20
+  mode: single
+- id: '1717495858589'
+  alias: Zappi in fault state
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.myenergi_zappi_24876502_plug_status
+    to: Fault
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  condition: []
+  action:
+  - service: notify.all_devices
+    data:
+      message: Myenegi Zappi status is 'Fault'
+  mode: single
+- id: '1718194374102'
+  alias: PV Opt stop zappi when discharging
+  description: ''
+  triggers:
+  - entity_id:
+    - sensor.pvopt_status
+    to: Discharging
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 30
+    trigger: state
+  conditions:
+  - condition: state
+    entity_id: binary_sensor.octopus_energy_a_281ee75f_intelligent_dispatching
+    state: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 20
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: select.myenergi_zappi_24876502_charge_mode
+      state: Stopped
+  actions:
+  - device_id: aa6bc65a79469914908d8112506036e5
+    domain: select
+    entity_id: 4c65227b1c8871981a23aed1af73607e
+    type: select_option
+    option: Stopped
+  - metadata: {}
+    data: {}
+    target:
+      entity_id: switch.octopus_energy_a_281ee75f_intelligent_smart_charge
+    enabled: false
+    action: switch.turn_off
+  - data:
+      message: PVOPT discharging, setting zappi to stop
+    action: notify.all_devices
+  mode: single
+- id: '1718194683089'
+  alias: PV Opt set zappi to eco+ after discharging
+  description: ''
+  triggers:
+  - entity_id:
+    - sensor.pvopt_status
+    to: Idle
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 30
+    enabled: true
+    trigger: state
+  - entity_id:
+    - sensor.pvopt_status
+    to: Charging
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 30
+    trigger: state
+  conditions:
+  - condition: state
+    entity_id: select.myenergi_zappi_24876502_charge_mode
+    state: Stopped
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 20
+  actions:
+  - device_id: aa6bc65a79469914908d8112506036e5
+    domain: select
+    entity_id: 4c65227b1c8871981a23aed1af73607e
+    type: select_option
+    option: Eco+
+  - metadata: {}
+    data: {}
+    target:
+      entity_id: switch.octopus_energy_a_281ee75f_intelligent_smart_charge
+    action: switch.turn_on
+  - data:
+      message: PVOPT finished discharging, setting zappi to eco+
+    action: notify.all_devices
+  mode: single
+- id: '1728547642042'
+  alias: Check pvopt is working
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.pvopt_status
+    to: unavailable
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  condition: []
+  action:
+  - service: notify.all_devices
+    metadata: {}
+    data:
+      message: pvopt_status is not available - restart app daemon ??
+  mode: single
+- id: '1733583839922'
+  alias: Bedroom 4 random
+  description: ''
+  use_blueprint:
+    path: sOckhamSter/randomised_light_at_night.yaml
+    input:
+      target_light: switch.bedroom_4_lamp
+      lights_out_time: '22:35:00'
+      away_lighting_switch_entity: switch.north_external_socket_socket_1
+- id: '1735029443224'
+  alias: Corrupt database alert
+  description: ''
+  triggers:
+  - event_type: folder_watcher
+    event_data:
+      event_type: created
+    trigger: event
+  actions:
+  - action: persistent_notification.create
+    metadata: {}
+    data:
+      message: Created {{ trigger.event.data.file }} in {{ trigger.event.data.folder
+        }}
+  - action: notify.all_devices
+    metadata: {}
+    data:
+      message: Corrupt database {{ trigger.event.data.file }} in {{ trigger.event.data.folder
+        }}
+- id: '1735806134762'
+  alias: DB size alert
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.home_assistant_v2_db_size
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    below: 1500000
+  conditions: []
+  actions:
+  - action: persistent_notification.create
+    metadata: {}
+    data:
+      message: '{{ trigger.entity_id }} {{ sensor.home_assistant_v2_db_size }} below
+        threshold {{ trigger.below }}'
+  - action: notify.all_devices
+    metadata: {}
+    data:
+      message: '{{ trigger.entity_id }} {{ sensor.home_assistant_v2_db_size }} below
+        threshold {{ trigger.below }}'
+  mode: single
+- id: '1736168181585'
+  alias: Samsung AHSP Error Alert
+  description: ''
+  use_blueprint:
+    path: omerfaruk-aran/notification_blueprint.yaml
+    input:
+      sensor_entity: sensor.samsung_ashp_error_code
+      is_ios: true
+      notify_device: 8ce10e80229e57f8be8e0c1354c0321e
+- id: '1736367634550'
+  alias: pv_opt error monitor
+  description: Alert when pv_opt may have issues
+  triggers:
+  - trigger: state
+    alias: pv_opt status has not changed for 20 minutes
+    entity_id: sensor.pvopt_status
+    attribute: last_updated
+    for:
+      minutes: 20
+    variables:
+      alert_text: pv opt stalled? last_updated=' {{ state_attr('sensor.pvopt_status','last_updated')|as_timestamp|timestamp_custom('%a
+        %H:%M') }}', unchanged for 20 mins; Status='{{ states('sensor.pvopt_status')
+        }}'
+  - trigger: template
+    value_template: '{% if not is_state(''sensor.pvopt_status'', ''Idle'') %}true{%
+      endif %}'
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    variables:
+      alert_text: pv_opt should be idle but is not, last_updated=' {{ state_attr('sensor.pv_opt_status','last_updated')|as_timestamp|timestamp_custom('%a
+        %H:%M') }}', unchanged for 5 mins; Status='{{ states('sensor.pv_opt_status')
+        }}'
+  conditions: []
+  actions:
+  - action: notify.all_devices
+    alias: Send alert message
+    data:
+      title: pv_opt status issue
+      message: '{{now().strftime(''%-d %b %H:%M'')}} ISSUE:
+
+        {{ alert_text }}
+
+        '
+      data:
+        visibility: public
+        persistent: true
+        push:
+          sound:
+            name: default
+            critical: 1
+            volume: 0.8
+        sticky: true
+        color: red
+  trace:
+    stored_traces: 20
+  mode: single
+- id: '1736498047005'
+  alias: Notify - Auto Backup
+  description: ''
+  use_blueprint:
+    path: jcwillox/notify_auto_backup.yaml
+    input:
+      devices:
+      - 8ce10e80229e57f8be8e0c1354c0321e
+- id: '1737024452326'
+  alias: Generic entity not available alert
+  description: Alert when inegrations may have issues
+  triggers:
+  - trigger: template
+    value_template: '{% if not has_state(''sensor.epson_et_2750_series_black_ink'')
+      %}true{% endif %}'
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    variables:
+      alert_text: 'test 2 Epson printer does not appear to be online, last_updated=''
+        {{ state_attr(''sensor.epson_et_2750_series_black_ink'',''last_updated'')|as_timestamp|timestamp_custom(''%a
+        %H:%M'') }}'' variables:'
+  - entity_id: sensor.epson_et_2750_series_black_ink
+    to: unavailable
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    variables:
+      alert_text: test 1 Epson printer does not appear to be online, last_updated='
+        {{ state_attr('sensor.epson_et_2750_series_black_ink','last_updated')|as_timestamp|timestamp_custom('%a
+        %H:%M') }}'
+    trigger: state
+  conditions: []
+  actions:
+  - action: notify.all_devices
+    alias: Send alert message
+    data:
+      title: Entity not available alert
+      message: '{{now().strftime(''%-d %b %H:%M'')}} ISSUE:
+
+        {{ alert_text }}
+
+        '
+      data:
+        visibility: public
+  trace:
+    stored_traces: 20
+  mode: single
+- id: '1737399034903'
+  alias: Predbat error monitor
+  description: Alert when Predbat has raised an exception
+  triggers:
+  - trigger: template
+    alias: Predbat status contains 'Error' for 5 minutes
+    value_template: '{{ ''Error'' in states(''predbat.status'') }}'
+    for:
+      minutes: 5
+    variables:
+      alert_text: predbat status is {{ states('predbat.status') }}, error={{ state_attr('predbat.status',
+        'error') }}
+  - trigger: state
+    alias: Predbat is in error status for 5 minutes
+    entity_id: predbat.status
+    attribute: error
+    to: 'true'
+    for:
+      minutes: 5
+    variables:
+      alert_text: predbat status is {{ states('predbat.status') }}, error={{ state_attr('predbat.status',
+        'error') }}
+  - trigger: state
+    alias: Predbat status.last_updated has not changed for 20 minutes
+    entity_id: predbat.status
+    attribute: last_updated
+    for:
+      minutes: 20
+    variables:
+      alert_text: Predbat stalled? Restarting. last_updated=' {{ state_attr('predbat.status','last_updated')|as_timestamp|timestamp_custom('%a
+        %H:%M') }}', unchanged for 20 mins; Status='{{ states('predbat.status') }}'
+      restart_predbat: Y
+  - trigger: state
+    entity_id: binary_sensor.predbat_running
+    to: 'off'
+    for:
+      minutes: 15
+    variables:
+      alert_text: Predbat add-on is not running
+      restart_predbat: Y
+    enabled: false
+  - trigger: state
+    entity_id:
+    - predbat.status
+    to: unavailable
+    variables:
+      alert_text: Predbat status unavailable Status='{{ states('predbat.status')}}'
+  - trigger: state
+    entity_id:
+    - predbat.status
+    to: unknown
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    variables:
+      alert_text: Predbat status unknown Status='{{ states('predbat.status')}}'
+  - trigger: state
+    entity_id:
+    - predbat.rates
+    to: '0'
+    for:
+      hours: 0
+      minutes: 20
+      seconds: 0
+    variables:
+      alert_text: Predbat unable to get rates? rates={{ states('predbat.rates') }},
+        zero for 20 mins
+  actions:
+  - action: notify.mobile_app_iphone
+    data:
+      title: Predbat status issue
+      message: '{{now().strftime(''%-d %b %H:%M'')}} ISSUE:
+
+        {{ alert_text }}
+
+        '
+      data:
+        visibility: public
+        persistent: true
+        push:
+          sound:
+            name: default
+            critical: 1
+            volume: 0.8
+        sticky: true
+        color: red
+  mode: single
+  trace:
+    stored_traces: 20
+- id: '1737532869329'
+  alias: Low Battery Notifications & Actions
+  description: ''
+  use_blueprint:
+    path: Blackshome/low-battery-notifications-and-actions.yaml
+    input:
+      notify_device:
+      - 8ce10e80229e57f8be8e0c1354c0321e
+      include_time: time_enabled
+      time: '12:00:00'
+      exclude_sensors:
+        entity_id:
+        - sensor.predbat_gs_0_charge_limit
+        - sensor.predbat_gs_0_reserve
+        - sensor.solar_battery_rack_battery
+        device_id:
+        - fa10e90851e5b160c561544e66577e13
+        - 8ce10e80229e57f8be8e0c1354c0321e
+        - c6e4171e8e874fdea2c055df7f3b8343
+      include_easy_notify: disabled_easy_notify
+      include_persistent_notification: enable_persistent_notification
+- id: '1738660541500'
+  alias: Hot water boost
+  description: ''
+  triggers:
+  - trigger: state
+    id: Hot Water On
+    entity_id:
+    - binary_sensor.target_timeframes_octopus_energy_import_hot_water_nightly
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  - trigger: state
+    id: Hot Water Off
+    entity_id:
+    - binary_sensor.target_timeframes_octopus_energy_import_hot_water_nightly
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  - trigger: time
+    id: Hot Water Off
+    at: '17:55:00'
+    weekday:
+    - sun
+    enabled: false
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - Hot Water On
+      sequence:
+      - action: script.set_dhw_temperature
+        metadata: {}
+        data:
+          temperature: '{{ boost_temp | float}}'
+    - conditions:
+      - condition: trigger
+        id:
+        - Hot Water Off
+      sequence:
+      - action: script.set_dhw_temperature
+        metadata: {}
+        data:
+          temperature: '{{ day_temp | float}}'
+  variables:
+    min_temp: 30
+    max_temp: 55
+    legionella: '{{ states(''input_number.dhw_legionella'') | float }}'
+    default_boost: '{{ states(''input_number.dhw_boost'') | float }}'
+    holiday: '{{ states(''input_number.dhw_holiday_temp'') | float }}'
+    setback: '{{ states(''input_number.dhw_setback'') | float }}'
+    holiday_mode: '{{ states(''binary_sensor.holiday_mode'') | bool }}'
+    boost_temp: '{%- if holiday_mode -%} {{ holiday |float }} {% elif (now().weekday()
+      == 2) %} {{ legionella | float }} {% else %} {{ default_boost | float}} {% endif
+      %}
+
+      '
+    day_temp: '{{ [( default_boost - setback ),  min_temp ] | max | float}}
+
+      '
+  mode: single
+- id: '1739806428807'
+  alias: Battery warmer
+  description: ''
+  triggers:
+  - type: temperature
+    device_id: 156b84f69254ed2de9619c5d316c712f
+    entity_id: 01ac888aae7da551acf9489bc7925d49
+    domain: sensor
+    trigger: device
+    id: stop_battery_heat
+    above: 12
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  - type: temperature
+    device_id: 156b84f69254ed2de9619c5d316c712f
+    entity_id: 01ac888aae7da551acf9489bc7925d49
+    domain: sensor
+    trigger: device
+    id: start_battery_heat
+    below: 11
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - start_battery_heat
+      sequence:
+      - type: turn_on
+        device_id: 8dcb28e773d84717dc35c2e3835cffb0
+        entity_id: 475cf243220aa56797beaf5b00e03d66
+        domain: switch
+    - conditions:
+      - condition: trigger
+        id:
+        - stop_battery_heat
+      sequence:
+      - type: turn_off
+        device_id: 8dcb28e773d84717dc35c2e3835cffb0
+        entity_id: 475cf243220aa56797beaf5b00e03d66
+        domain: switch
+  mode: single
+- id: '1743758604914'
+  alias: Mower Locked Alert
+  description: ''
+  triggers:
+  - entity_id:
+    - sensor.luba_amfd74ph_activity_mode
+    to: MODE_LOCK
+    trigger: state
+  actions:
+  - action: notify.notify
+    data:
+      title: WARNING Mower Locked!
+      message: Lift sensor triggered
+      data:
+        image: /local/warning.png
+        channel: alarm_stream
+        tag: mower_alert
+        importance: max
+        visibility: public
+        notification_icon: mdi:robot-mower
+        clickAction: /home/mower
+        ttl: 0
+        priority: high
+        color: red
+- id: '1748105181657'
+  alias: Target Timeframes - Octopus Energy source
+  description: ''
+  use_blueprint:
+    path: bottlecapdave.github.io/target_timeframes_octopus_energy.yaml
+    input:
+      octopus_energy_current_day_rates: event.octopus_energy_electricity_22l3527084_1580001758865_current_day_rates
+      octopus_energy_next_day_rates: event.octopus_energy_electricity_22l3527084_1580001758865_next_day_rates
+      octopus_energy_previous_day_rates: event.octopus_energy_electricity_22l3527084_1580001758865_previous_day_rates
+      target_timeframe_data_source_sensor: sensor.target_timeframes_octopus_energy_import_data_source_last_updated
+- id: '1750945194544'
+  alias: Car charging issue notification
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.my_volkswagen_charging_state
+    to: error
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    variables:
+      message: Car charging status status is {{ states('sensor.my_volkswagen_charging_state')
+        }}
+  - trigger: state
+    entity_id:
+    - sensor.myenergi_zappi_24876502_plug_status
+    to: Fault
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    variables:
+      message: Zappi plug status is {{ states('sensor.myenergi_zappi_24876502_plug_status')
+        }}
+  conditions:
+  - condition: state
+    entity_id: device_tracker.my_volkswagen_tracker
+    state: home
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    enabled: false
+  actions:
+  - action: notify.all_devices
+    data:
+      message: 'Car charging issue message: {{ message }}'
+  mode: single
+- id: '1751993207543'
+  alias: Octopus Energy - Spin Wheel Of Fortune (single)
+  description: ''
+  use_blueprint:
+    path: BottlecapDave/octopus_energy_spin_wheel_of_fortune_single.yml.yaml
+    input:
+      wheel_of_fortune_spins: sensor.octopus_energy_a_281ee75f_wheel_of_fortune_spins_electricity

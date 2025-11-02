@@ -1,0 +1,19 @@
+---
+  - sensor:
+    - name: "Current Energy Use"
+      entity_id: sensor.solis_energy_today
+      state: >
+        {{ (trigger.to_state.state | float(0) - trigger.from_state.state | float(0) ) | round(2) }}
+
+
+
+- trigger:
+    - platform: state
+      entity_id:
+        - sensor.solis_energy_today
+  sensor:
+    - name: "solis_energy_today_interval_now"
+      state: >
+        {{ ((as_timestamp(now()) - as_timestamp(states.binary_sensor.sump_pump_1_pumpout_event.last_changed)) | float(1) ) |int|timestamp_custom('%-M min %-S sec') }}
+      attributes:
+        friendly_name: Sump Pump 1 Cycle Interval

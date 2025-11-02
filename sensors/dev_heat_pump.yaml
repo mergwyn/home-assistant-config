@@ -1,0 +1,47 @@
+# ---
+# sensors:
+
+# TODO: fix names
+
+  - platform: statistics
+    name: "Energy Consumed Last Minute"
+    entity_id: sensor.ashp_clamp_power
+    # label: "ASHP clamp"
+    state_characteristic: average_linear
+    unique_id: statistics_sensor_energy_consumed_last_minute
+    sampling_size: 12
+    max_age:
+      minutes: 1
+    keep_last_sample: true
+
+  - platform: statistics
+    name: "Last Hour Energy Consumed"
+    entity_id: sensor.m5atom_dev_total_consumed_energy
+    unique_id: statistics_sensor_last_hour_energy_consumed
+    state_characteristic: change
+    sampling_size: 60
+    max_age:
+      hours: 1
+    keep_last_sample: false
+
+  - platform: statistics
+    name: "Last Hour Heat Produced"
+    entity_id: sensor.m5atom_dev_total_produced_energy
+    unique_id: statistics_sensor_last_hour_heat_produced
+    state_characteristic: change
+    sampling_size: 60
+    max_age:
+      hours: 1
+    keep_last_sample: false
+
+  - platform: template
+    sensors:
+      cop_last_min:
+        friendly_name: "COP Last Min"
+        value_template: |
+          {% set generated = states('sensor.m5atom_dev_power_produced_last_minute') | float(0) %}
+          {% set consumed = states('sensor.energy_consumed_last_minute') | float(0) %}
+          {% if generated == 0 or consumed == 0 -%}0{% else -%}
+          {{ [generated / consumed, 8] | min | round(2) | default(0)}}
+          {% endif -%}
+        unique_id: template_sensor_cop_last_min

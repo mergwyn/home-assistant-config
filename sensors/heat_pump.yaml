@@ -1,0 +1,23 @@
+# ---
+# sensors:
+
+  - platform: statistics
+    name: "ASHP Last Min Power 2"
+    entity_id: sensor.ashp_clamp_power
+    # label: "ASHP clamp"
+    state_characteristic: average_linear
+    unique_id: statistics_sensor_ashp_last_min_power_2
+    sampling_size: 12
+    max_age:
+      minutes: 1
+    keep_last_sample: true
+
+#  - platform: template
+#    sensors:
+#      upstairs_zone_temperature:
+#        friendly_name: Upstairs Zone Temperature
+#        value_template: "{{ state_attr('climate.upstairs_zone', 'current_temperature') }}"
+#        unit_of_measurement: "°C"
+#        unique_id: template_sensor_upstairs_zone_temperature
+#        #state_class: measurement
+#        device_class: temperature

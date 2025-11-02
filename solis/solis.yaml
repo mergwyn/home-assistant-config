@@ -1,0 +1,1072 @@
+- name: "solis"
+  type: tcp
+  host: "d_7a1231135150313a.theclarkhome.com"
+  port: 502   # for S2-WL-ST sticks
+  # port: 8899  # for DLS-L sticks
+
+  sensors:
+    - name: Solis Year RO
+      slave: 1
+      address: 33022
+      count: 1
+      scale: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+    - name: Solis Month RO
+      slave: 1
+      address: 33023
+      count: 1
+      scale: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+    - name: Solis Day RO
+      slave: 1
+      address: 33024
+      count: 1
+      scale: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+    - name: Solis Hour RO
+      slave: 1
+      address: 33025
+      count: 1
+      scale: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+    - name: Solis Minute RO
+      slave: 1
+      address: 33026
+      count: 1
+      scale: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+
+    - name: Solis Year RW
+      slave: 1
+      address: 43000
+      count: 1
+      scale: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+    - name: Solis Month RW
+      slave: 1
+      address: 43001
+      count: 1
+      scale: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+    - name: Solis Day RW
+      slave: 1
+      address: 43002
+      count: 1
+      scale: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+    - name: Solis Hour RW
+      slave: 1
+      address: 43003
+      count: 1
+      scale: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+    - name: Solis Minute RW
+      slave: 1
+      address: 43004
+      count: 1
+      scale: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+    - name: Solis Second RW
+      slave: 1
+      address: 43005
+      count: 1
+      scale: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      state_class: measurement
+
+
+    # Temperature
+    - name: Solis Temperature
+      slave: 1
+      address: 33093
+      count: 1
+      scale: 0.1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: °C
+
+    # Grid
+    - name: Solis Grid Frequency
+      slave: 1
+      address: 33282
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.01
+      precision: 1
+      device_class: frequency
+      state_class: measurement
+      unit_of_measurement: Hz
+    - name: Solis Grid Voltage
+      slave: 1
+      address: 33251
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+    - name: Solis Grid Current
+      slave: 1
+      address: 33252
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.01
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+    - name: Solis Grid Active Power
+      slave: 1
+      address: 33257
+      count: 2
+      input_type: input
+      data_type: int32
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+
+      # Energy Imported/Exported
+    - name: Solis Daily Energy Imported
+      slave: 1
+      address: 33171
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 300
+      scale: 0.1
+      precision: 1
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+    - name: Solis Daily Energy Exported
+      slave: 1
+      address: 33175
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 300
+      scale: 0.1
+      precision: 1
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+    - name: Solis Total Energy Imported
+      slave: 1
+      address: 33169
+      count: 2
+      input_type: input
+      data_type: uint32
+      lazy_error_count: 5
+      scan_interval: 3600
+      scale: 1
+      precision: 1
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+    - name: Solis Total Energy Exported
+      slave: 1
+      address: 33173
+      count: 2
+      input_type: input
+      data_type: uint32
+      lazy_error_count: 5
+      scan_interval: 3600
+      scale: 1
+      precision: 1
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+
+    # Load
+    - name: Solis House Load Power
+      slave: 1
+      address: 33147
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+    - name: Solis Backup Load Power
+      slave: 1
+      address: 33148
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+
+    # Consumption
+    - name: Solis Daily Consumption
+      slave: 1
+      address: 33179
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 300
+      scale: 0.1
+      precision: 1
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+    - name: Solis Total Consumption
+      slave: 1
+      address: 33177
+      count: 2
+      input_type: input
+      data_type: uint32
+      lazy_error_count: 5
+      scan_interval: 3600
+      scale: 1
+      precision: 1
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+
+    # Battery
+    - name: Solis Battery Power
+      slave: 1
+      address: 33149
+      count: 2
+      input_type: input
+      data_type: int32
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+    - name: Solis Battery SOC
+      slave: 1
+      address: 33139
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      device_class: battery
+      state_class: measurement
+      unit_of_measurement: "%"
+    - name: Solis Battery SOH
+      slave: 1
+      address: 33140
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      device_class: battery
+      state_class: measurement
+      unit_of_measurement: "%"
+    - name: Solis Battery Voltage
+      slave: 1
+      address: 33133
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+    - name: Solis Battery Voltage (BMS)
+      slave: 1
+      address: 33141
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.01
+      precision: 1
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+    - name: Solis Battery Current
+      slave: 1
+      address: 33134
+      count: 1
+      input_type: input
+      data_type: int16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+    - name: Solis Battery Current (BMS)
+      slave: 1
+      address: 33142
+      count: 1
+      input_type: input
+      data_type: int16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.01
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+    - name: Solis Battery Charge Current Limit (BMS)
+      slave: 1
+      address: 33143
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+    - name: Solis Battery Discharge Current Limit (BMS)
+      slave: 1
+      address: 33144
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+    - name: Solis Battery Charge Current Limit
+      slave: 1
+      address: 33206
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+    - name: Solis Battery Discharge Current Limit
+      slave: 1
+      address: 33207
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      
+    # Battery Totals
+    - name: Solis Daily Battery Charge
+      slave: 1
+      address: 33163
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 300
+      scale: 0.1
+      precision: 1
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+    - name: Solis Daily Battery Discharge
+      slave: 1
+      address: 33167
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 300
+      scale: 0.1
+      precision: 1
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+    - name: Solis Total Battery Charge
+      slave: 1
+      address: 33161
+      count: 2
+      input_type: input
+      data_type: uint32
+      lazy_error_count: 5
+      scan_interval: 3600
+      scale: 1
+      precision: 1
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+    - name: Solis Total Battery Discharge
+      slave: 1
+      address: 33165
+      count: 2
+      input_type: input
+      data_type: uint32
+      lazy_error_count: 5
+      scan_interval: 3600
+      scale: 1
+      precision: 1
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+
+    # Inverter DC Input
+    - name: Solis PV1 Voltage
+      slave: 1
+      address: 33049
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+    - name: Solis PV2 Voltage
+      slave: 1
+      address: 33051
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+    - name: Solis PV1 Current
+      slave: 1
+      address: 33050
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+    - name: Solis PV2 Current
+      slave: 1
+      address: 33052
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+    - name: Solis Inverter DC Power
+      slave: 1
+      address: 33057
+      count: 2
+      input_type: input
+      data_type: uint32
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+
+    # Inverter AC Output
+    - name: Solis Inverter AC Power
+      slave: 1
+      address: 33079
+      count: 2
+      input_type: input
+      data_type: int32
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+    - name: Solis Inverter Voltage
+      slave: 1
+      address: 33073
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+    - name: Solis Inverter Current
+      slave: 1
+      address: 33076
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+    - name: Solis Inverter Apparent Power
+      slave: 1
+      address: 33083
+      count: 2
+      input_type: input
+      data_type: int32
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      device_class: apparent_power
+      state_class: measurement
+      unit_of_measurement: VA
+    - name: Solis Inverter Frequency
+      slave: 1
+      address: 33094
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: .01
+      precision: 1
+      device_class: frequency
+      state_class: measurement
+      unit_of_measurement: Hz
+
+    # Generation
+    - name: Solis Daily Generation
+      slave: 1
+      address: 33035
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 300
+      scale: .1
+      precision: 1
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+    - name: Solis Monthly Generation
+      slave: 1
+      address: 33031
+      count: 2
+      input_type: input
+      data_type: uint32
+      lazy_error_count: 5
+      scan_interval: 3600
+      scale: 1
+      precision: 1
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+    - name: Solis Yearly Generation
+      slave: 1
+      address: 33037
+      count: 2
+      input_type: input
+      data_type: uint32
+      lazy_error_count: 5
+      scan_interval: 3600
+      scale: 1
+      precision: 1
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+    - name: Solis Total Generation
+      slave: 1
+      address: 33029
+      count: 2
+      input_type: input
+      data_type: uint32
+      lazy_error_count: 5
+      scan_interval: 3600
+      scale: 1
+      precision: 1
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+
+    # Flags and Status
+    - name: Solis Energy Storage Control Switch
+      slave: 1
+      address: 33132
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      state_class: measurement
+    - name: Solis Battery Current Direction
+      slave: 1
+      address: 33135
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      state_class: measurement
+    - name: Solis Inverter Status
+      slave: 1
+      address: 33095
+      count: 1
+      input_type: input
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 1
+      state_class: measurement
+
+
+    # Holding registers
+    # Timed Charge and Discharge Currenmt Limits (R/W)
+    - name: Solis Charge Current Limit
+      slave: 1
+      address: 43117
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      state_class: measurement
+      device_class: current
+      unit_of_measurement: A
+    - name: Solis Discharge Current Limit
+      slave: 1
+      address: 43118
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      state_class: measurement
+      device_class: current
+      unit_of_measurement: A
+
+    # Timed Charge and Discharge Settings (R/W)
+    - name: Solis Timed Charge Current Limit
+      slave: 1
+      address: 43141
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      state_class: measurement
+      device_class: current
+      unit_of_measurement: A
+    - name: Solis Timed Discharge Current Limit
+      slave: 1
+      address: 43142
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 0.1
+      precision: 1
+      state_class: measurement
+      device_class: current
+      unit_of_measurement: A
+    - name: Solis Timed Charge Start Hour
+      slave: 1
+      address: 43143
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Charge Start Minute
+      slave: 1
+      address: 43144
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Charge End Hour
+      slave: 1
+      address: 43145
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Charge End Minute
+      slave: 1
+      address: 43146
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge Start Hour
+      slave: 1
+      address: 43147
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge Start Minute
+      slave: 1
+      address: 43148
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge End Hour
+      slave: 1
+      address: 43149
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge End Minute
+      slave: 1
+      address: 43150
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+
+# 2nd Timed slots            
+    - name: Solis Timed Charge 2 Start Hour
+      slave: 1
+      address: 43153
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Charge 2 Start Minute
+      slave: 1
+      address: 43154
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Charge 2 End Hour
+      slave: 1
+      address: 43155
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Charge 2 End Minute
+      slave: 1
+      address: 43156
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge 2 Start Hour
+      slave: 1
+      address: 43157
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge 2 Start Minute
+      slave: 1
+      address: 43158
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge 2 End Hour
+      slave: 1
+      address: 43159
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge 2 End Minute
+      slave: 1
+      address: 43160
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+
+# 3rd Timed slots      
+    - name: Solis Timed Charge 3 Start Hour
+      slave: 1
+      address: 43163
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Charge 3 Start Minute
+      slave: 1
+      address: 43164
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Charge 3 End Hour
+      slave: 1
+      address: 43165
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Charge 3 End Minute
+      slave: 1
+      address: 43166
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge 3 Start Hour
+      slave: 1
+      address: 43167
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge 3 Start Minute
+      slave: 1
+      address: 43168
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge 3 End Hour
+      slave: 1
+      address: 43169
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Timed Discharge 3 End Minute
+      slave: 1
+      address: 43170
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+    - name: Solis Backup Mode SOC
+      slave: 1
+      address: 43024
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+      device_class: battery
+      unit_of_measurement: "%"
+    - name: Solis Overdischarge SOC
+      slave: 1
+      address: 43011
+      count: 1
+      input_type: holding
+      data_type: uint16
+      lazy_error_count: 5
+      scan_interval: 60
+      scale: 1
+      precision: 0
+      state_class: measurement
+      device_class: battery
+      unit_of_measurement: "%"
+

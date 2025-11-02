@@ -1,0 +1,47 @@
+set_dhw_temperature:
+  sequence:
+  - enabled: false
+    alias: Notify that the hot water is being turned on
+    action: notify.notify
+    data:
+      message: 'Setting hot water to {{ temperature }} ({{ mode }})
+
+        '
+  - action: select.select_option
+    metadata: {}
+    data:
+      option: '{{ mode }}'
+    target:
+      entity_id: select.samsung_ashp_dhw_mode
+    enabled: true
+  - action: climate.set_temperature
+    metadata: {}
+    data:
+      temperature: '{{ temperature }}'
+    target:
+      entity_id: climate.samsung_ashp_hot_water
+  - action: climate.turn_off
+    target:
+      entity_id: climate.samsung_ashp_hot_water
+    data: {}
+  - wait_template: '{{ is_state(''climate.samsung_ashp_hot_water'', ''off'') }}'
+    timeout: 00:00:05
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 2
+      milliseconds: 0
+  - action: climate.turn_on
+    target:
+      entity_id: climate.samsung_ashp_hot_water
+    data: {}
+  fields:
+    temperature:
+      description: The temperature to set the hot water to
+      example: 48
+      default: 48
+  variables:
+    mode: Standard
+  description: ''
+  icon: mdi:water
+  alias: Set DHW Temperature

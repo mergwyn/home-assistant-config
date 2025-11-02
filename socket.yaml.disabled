@@ -1,0 +1,5 @@
+  - platform: integration
+    name:  north_external_socket_power_accumulative
+    source:  sensor.north_external_socket_power
+    unit_prefix: k
+    round: 2

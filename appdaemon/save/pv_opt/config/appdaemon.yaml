@@ -1,0 +1,43 @@
+secrets: /home-assistant/secrets.yaml
+appdaemon:
+  latitude: 54.3390
+  longitude: -1.4324
+  elevation: 30
+  time_zone: Europe/London
+  app_dir: /home-assistant/appdaemon/apps
+  plugins:
+    HASS:
+      type: hass
+      ha_url: http://home-assistant:8123
+      token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjIzODhkNWUyYjA0ZjVjYjIyZGUyMzg4NTgwODBlNyIsImlhdCI6MTcwNjc5MzE3OSwiZXhwIjoyMDIyMTUzMTc5fQ.9oQRKwqdOnlhNlioKKIaZzYHw8hZkHowFKHtMqSq5vs
+      cert_verify: True
+    MQTT:
+      type: mqtt
+      namespace: mqtt #
+      verbose: True
+      client_host: mosquitto
+      client_port: 1883
+      client_id: localad
+      event_name: MQTT_MESSAGE 
+      client_topics: NONE
+      client_user: !secret mqtt-user
+      client_password: !secret mqtt-password
+http:
+  url: http://0.0.0.0:5050
+admin:
+api:
+hadashboard:
+
+logs:
+  main_log:
+    filename: /conf/logs/main.log
+    date_format: '%H:%M:%S'
+  error_log:
+    filename: /conf/logs/error.log
+    date_format: '%H:%M:%S'
+  pv_opt_log:
+    name: PV_Opt
+    filename: /conf/logs/pv_opt.log
+    date_format: '%H:%M:%S'
+    format: '{asctime} {levelname:>8s}: {message}'
+

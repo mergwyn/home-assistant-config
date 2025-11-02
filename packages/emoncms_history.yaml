@@ -1,0 +1,70 @@
+---
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+# Text to speech
+tts:
+  - platform: google_translate
+
+homeassistant:
+  allowlist_external_dirs:
+    - /config
+  packages: !include_dir_named packages
+
+recorder:
+  purge_keep_days: 10
+  auto_purge: true
+  auto_repack: true
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+http: !include http.yaml
+template: !include_dir_merge_list templates
+sensor: !include_dir_merge_list sensors
+# modbus: !include_dir_merge_list modbus
+
+powercalc:
+
+prometheus:
+
+emoncms_history:
+  # TODO: move to secret
+  api_key: ad1ff8fa13c9b5a58cee93976fd583e6
+  url: https://emoncms.org
+  inputnode: 19
+  whitelist:
+    - sensor.samsung_ashp_dhw_status
+    - sensor.samsung_ashp_zone_heating_status
+    - sensor.samsung_ashp_heat_pump_outdoor_temperature
+    - sensor.samsung_ashp_heat_pump_energy_consumed_total
+    - sensor.samsung_ashp_heat_pump_energy_consumed_last_min
+    - sensor.samsung_ashp_heat_pump_heat_generated_total
+    - sensor.samsung_ashp_heat_pump_heat_generated_last_min
+    - sensor.samsung_ashp_flow_rate
+    - sensor.samsung_ashp_flow_temp
+    - sensor.samsung_ashp_flow_temp_return
+    - sensor.samsung_ashp_defrost_mode
+
+logger:
+  default: warning
+  # TODO: move to include file
+  filters: !include_dir_merge_named log_filters
+
+#   logs:
+#     homeassistant.components.mammotion: debug
+#     custom_components.mammotion: debug
+#     pymammotion: debug
+
+# Notifications
+notify:
+  - name: "all_devices"
+    platform: group
+    services:
+      - action: mobile_app_iphone
+      - action: mobile_app_anns_ipad_air_5
+
