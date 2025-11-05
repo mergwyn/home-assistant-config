@@ -1,16 +1,16 @@
 # ---
 # sensors:
 
-  - platform: statistics
-    name: "ASHP Last Min Power 2"
-    entity_id: sensor.ashp_clamp_power
-    # label: "ASHP clamp"
-    state_characteristic: average_linear
-    unique_id: statistics_sensor_ashp_last_min_power_2
-    sampling_size: 12
-    max_age:
-      minutes: 1
-    keep_last_sample: true
+- platform: statistics
+  name: "ASHP Last Min Power 2"
+  entity_id: sensor.ashp_clamp_power
+  # label: "ASHP clamp"
+  state_characteristic: average_linear
+  unique_id: statistics_sensor_ashp_last_min_power_2
+  sampling_size: 12
+  max_age:
+    minutes: 1
+  keep_last_sample: true
 
 #  - platform: template
 #    sensors:

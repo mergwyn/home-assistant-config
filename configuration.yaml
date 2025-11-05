@@ -20,17 +20,3 @@ script: !include scripts.yaml
 scene: !include scenes.yaml
 template: !include_dir_merge_list templates
 sensor: !include_dir_merge_list sensors
-
-powercalc:
-
-prometheus:
-
-logger:
-  default: warning
-  # TODO: move to include file
-  filters: !include_dir_merge_named log_filters
-
-#   logs:
-#     homeassistant.components.mammotion: debug
-#     custom_components.mammotion: debug
-#     pymammotion: debug

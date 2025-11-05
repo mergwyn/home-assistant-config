@@ -1,3 +1,2 @@
-    homeassistant.loader:
-      # Really? Cool... I know... I installed them...
-      - "We found a custom integration"
+homeassistant.loader:
+  - "We found a custom integration"

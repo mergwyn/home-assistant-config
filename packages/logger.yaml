@@ -1,0 +1,5 @@
+---
+logger:
+  default: warning
+  # TODO: move to include file
+  filters: !include_dir_merge_named ../log_filters
