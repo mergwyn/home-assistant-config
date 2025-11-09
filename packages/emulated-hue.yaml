@@ -1,0 +1,8 @@
+---
+emulated_hue:
+  listen_port: 80
+
+  exposed_domains:
+    - light
+    - switch
+    - group
