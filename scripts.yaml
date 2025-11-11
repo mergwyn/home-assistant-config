@@ -29,7 +29,7 @@ set_dhw_temperature:
   - delay:
       hours: 0
       minutes: 0
-      seconds: 2
+      seconds: 5
       milliseconds: 0
   - action: climate.turn_on
     target:
