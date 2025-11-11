@@ -10,6 +10,7 @@ custom_components/
 .HA_VERSION
 image/
 ip_bans.yaml
+.kopiaignore
 *.log
 *.log.*
 packages/untracked_packages/
