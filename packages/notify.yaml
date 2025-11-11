@@ -4,7 +4,7 @@
 # https://www.home-assistant.io/integrations/notify/
 #
 notify:
-  - name: "all_devices"
+  - name: all_devices
     platform: group
     services:
       - action: mobile_app_iphone
