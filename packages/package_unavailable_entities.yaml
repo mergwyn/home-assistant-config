@@ -8,17 +8,17 @@
 #REQUIRED - List of disabled device entities
 command_line:
   sensor:
-      name: Disabled Device Entities
-      unique_id: disabled_device_entities
-      json_attributes:
-        - entities
-      value_template: "{{ value_json.entities | length }}"
-      command: 'jq ''.data.entities |= map(select(.disabled_by? != null) | {entity_id: .entity_id}) | del(.data.deleted_entities) | flatten | .[3]'' < .storage/core.entity_registry'
+    name: Disabled Device Entities
+    unique_id: disabled_device_entities
+    json_attributes:
+      - entities
+    value_template: "{{ value_json.entities | length }}"
+    command: "jq '.data.entities |= map(select(.disabled_by? != null) | {entity_id: .entity_id}) | del(.data.deleted_entities) | flatten | .[3]' < .storage/core.entity_registry"
 
 #REQUIRED - Count of unavailable entities in the monitored entities group
 template:
   - sensor:
-      - name: "Unavailable Entities"
+      - name: Unavailable Entities
         unique_id: unavailable_entities
         icon: "{{ iif(states(this.entity_id)|int(-1) > 0,'mdi:alert-circle','mdi:check-circle') }}"
         state_class: measurement
@@ -38,14 +38,14 @@ group:
   ignored_entities:
     entities: []
   monitored_entities:
-    entities: 
+    entities:
       - predbat.status
 
 #REQUIRED - Create and update the monitored entities group. Updates once per minute.
 automation:
   - id: update_unavailable_entities_group
-    alias: "Update Unavailable Entities Group"
-    description: "Update unavailable entities group."
+    alias: Update Unavailable Entities Group
+    description: Update unavailable entities group.
     mode: single
     max_exceeded: silent
     triggers:
@@ -56,7 +56,7 @@ automation:
           service: reload
 
       - trigger: time_pattern
-        minutes: "/1"
+        minutes: /1
     actions:
       - action: group.set
         data:
@@ -87,8 +87,8 @@ automation:
 
   #OPTIONAL - Example notfication automation to demonstrate how you can utilize this sensor. (See example folder for more.)
   - id: unavailable_entities_notification
-    alias: "Unavailable Entities Notification"
-    description: "Create persistent notification if unavailable entities, dismiss if none."
+    alias: Unavailable Entities Notification
+    description: Create persistent notification if unavailable entities, dismiss if none.
     mode: restart
     triggers:
       - trigger: state
@@ -98,7 +98,7 @@ automation:
         for: 5 # throttle triggers and prevent blank notifications
     conditions:
       - condition: template
-        alias: "Sensor state is a valid numerical value"
+        alias: Sensor state is a valid numerical value
         value_template: "{{ is_number(states('sensor.unavailable_entities')) }}"
     actions:
       - if:
@@ -113,5 +113,5 @@ automation:
           - action: persistent_notification.create
             data:
               notification_id: unavailable_entities
-              title: "Unavailable Entities"
+              title: Unavailable Entities
               message: "{{ state_attr('group.unavailable_entities', 'entity_id') | join('\n') }}"
