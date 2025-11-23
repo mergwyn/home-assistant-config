@@ -40,7 +40,7 @@
       friendly_name: COP Last Min
       value_template: |
         {% set generated = states('sensor.m5atom_dev_power_produced_last_minute') | float(0) %}
-        {% set consumed = states('sensor.energy_consumed_last_minute') | float(0) %}
+        {% set consumed = states('statistics_sensor_energy_consumed_last_minute') | float(0) %}
         {% if generated == 0 or consumed == 0 -%}0{% else -%}
         {{ [generated / consumed, 8] | min | round(2) | default(0)}}
         {% endif -%}
