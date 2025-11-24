@@ -32,30 +32,3 @@
   max_age:
     hours: 1
   keep_last_sample: false
-
-  # TODO: add COP - daily
-  # TODO: add COP - Total
-
-- platform: template
-  sensors:
-    cop_last_hour:
-      friendly_name: ASHP COP - Last Hour
-      value_template: |
-        {% set generated = states('sensor.last_hour_heat_produced') | float(0) %}
-        {% set consumed = states('sensor.last_hour_energy_consumed') | float(0) %}
-        {% if generated == 0 or consumed == 0 -%}{{ float(0) }}{% else -%}
-        {{ [generated / consumed, 8] | min | round(2) | float(0)}}
-        {% endif -%}
-      unique_id: template_sensor_cop_last_hour
-
-- platform: template
-  sensors:
-    cop_last_min:
-      friendly_name: ASHP COP - Last Min
-      value_template: |
-        {% set generated = states('sensor.m5atom_dev_power_produced_last_minute') | float(0) %}
-        {% set consumed = states('sensor.energy_consumed_last_minute') | float(0) %}
-        {% if generated == 0 or consumed == 0 -%}{{ float(0) }}{% else -%}
-        {{ [generated / consumed, 8] | min | round(2) | float(0)}}
-        {% endif -%}
-      unique_id: template_sensor_cop_last_min
