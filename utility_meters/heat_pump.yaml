@@ -1,9 +1,9 @@
 ---
 
 
-energy:
-  source: sensor.ashp_clamp_energy
-  name: ASHP Daily Energy Consumed
-  cycle: daily
-  unique_id: meter_sensor_clamp_daily_energy_consumed
-  always_available: true
+# energy:
+#   source: sensor.ashp_clamp_energy
+#   name: ASHP Daily Energy Consumed
+#   cycle: daily
+#   unique_id: meter_sensor_clamp_daily_energy_consumed
+#   always_available: true
