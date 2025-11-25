@@ -7,7 +7,23 @@
     #state_class: measurement
     device_class: temperature
     unit_of_measurement: °C
-    state: "{{ float(state_attr('climate.landing', 'current_temperature')) | round(1) }}"
+    availability: |-
+      {{ states("climate.landing") != "unavailable"
+      and states("climate.landing") != "unknown" }}
+    state: |-
+      {{ state_attr('climate.landing', 'current_temperature') | float(0) | round(1) }}
+
+- sensor:
+  - name: ASHP COP - Daily
+    unique_id: template_sensor_cop_daily
+    state_class: measurement
+    icon: mdi:chart-bar
+    state: >
+      {% set generated = states('sensor.last_hour_heat_produced') | float(0) %}
+      {% set consumed = states('sensor.ashp_daily_energy_consumed') | float(0) %}
+      {% if generated == 0 or consumed == 0 -%}{{ float(0) }}{% else -%}
+      {{ [generated / consumed, 8] | min | round(2) | float(0)}}
+      {% endif -%}
 
 - sensor:
   - name: ASHP COP - Last Hour
@@ -17,7 +33,7 @@
     state: >
       {% set generated = states('sensor.last_hour_heat_produced') | float(0) %}
       {% set consumed = states('sensor.last_hour_energy_consumed') | float(0) %}
-      {% if generated == 0 or consumed == 0 -%}{{ float(0) }}{% else -%}
+      {% if generated == 0 or consumed == 0 -%}0{% else -%}
       {{ [generated / consumed, 8] | min | round(2) | float(0)}}
       {% endif -%}
 
@@ -29,6 +45,6 @@
     state: >
       {% set generated = states('sensor.m5atom_dev_power_produced_last_minute') | float(0) %}
       {% set consumed = states('sensor.energy_consumed_last_minute') | float(0) %}
-      {% if generated == 0 or consumed == 0 -%}{{ float(0) }}{% else -%}
+      {% if generated == 0 or consumed == 0 -%}0{% else -%}
       {{ [generated / consumed, 8] | min | round(2) | float(0)}}
       {% endif -%}
