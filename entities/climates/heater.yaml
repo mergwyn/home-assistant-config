@@ -1,0 +1,10 @@
+---
+
+  - platform: generic_thermostat
+    name: Solar Heater
+    heater: switch.heater
+    target_sensor: sensor.solar_battery_rack_temperature
+    min_temp: 0
+    max_temp: 10
+    ac_mode: false # Set to true for air conditioning
+    unique_id: climate.solar_heater
