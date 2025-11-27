@@ -1,0 +1,7 @@
+---
+- sensor:
+  - name: Car Charging Now
+    unique_id: template_sensor_car_charging_now
+    state: >
+      {% set state = states('sensor.myenergi_zappi_24876502_status')  %}
+      {% if state == "Boosting" or state == "Charging" -%}on{% else -%}off{% endif -%}
