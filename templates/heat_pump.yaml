@@ -14,37 +14,37 @@
       {{ state_attr('climate.landing', 'current_temperature') | float(0) | round(1) }}
 
 - sensor:
-  - name: ASHP COP - Daily
-    unique_id: template_sensor_cop_daily
+  - name: ASHP COP - Daily Clamp
+    unique_id: template_sensor_cop_daily_clamp
     state_class: measurement
     icon: mdi:chart-bar
     state: >
-      {% set generated = states('sensor.last_hour_heat_produced') | float(0) %}
-      {% set consumed = states('sensor.ashp_daily_energy_consumed') | float(0) %}
+      {% set generated = states('sensor.m5atom_dev_daily_heat_generated') | float(0) %}
+      {% set consumed = states('sensor.ashp_daily_energy_consumed_clamp') | float(0) %}
       {% if generated == 0 or consumed == 0 -%}{{ float(0) }}{% else -%}
       {{ [generated / consumed, 8] | min | round(2) | float(0)}}
       {% endif -%}
 
 - sensor:
-  - name: ASHP COP - Last Hour
+  - name: ASHP COP - Last Hour Clamp
     unique_id: template_sensor_cop_last_hour
     state_class: measurement
     icon: mdi:chart-bar
     state: >
-      {% set generated = states('sensor.last_hour_heat_produced') | float(0) %}
-      {% set consumed = states('sensor.last_hour_energy_consumed') | float(0) %}
+      {% set generated = states('sensor.ashp_last_hour_heat_produced_esp') | float(0) %}
+      {% set consumed = states('sensor.ashp_last_hour_energy_consumed_clamp') | float(0) %}
       {% if generated == 0 or consumed == 0 -%}0{% else -%}
       {{ [generated / consumed, 8] | min | round(2) | float(0)}}
       {% endif -%}
 
 - sensor:
-  - name: ASHP COP - Last Min
+  - name: ASHP COP - Last Min Clamp
     unique_id: template_sensor_cop_last_min
     state_class: measurement
     icon: mdi:chart-bar
     state: >
       {% set generated = states('sensor.m5atom_dev_power_produced_last_minute') | float(0) %}
-      {% set consumed = states('sensor.energy_consumed_last_minute') | float(0) %}
+      {% set consumed = states('sensor.ashp_power_consumed_last_minute_clamp') | float(0) %}
       {% if generated == 0 or consumed == 0 -%}0{% else -%}
       {{ [generated / consumed, 8] | min | round(2) | float(0)}}
       {% endif -%}
