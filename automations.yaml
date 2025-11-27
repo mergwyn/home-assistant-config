@@ -5,15 +5,17 @@
     trigger: time
   conditions:
   - condition: state
-    entity_id: sensor.my_volkswagen_plug_connection_state
-    state: disconnected
+    state:
+    - 'off'
+    entity_id: binary_sensor.my_id3_charging_cable_connected
   - condition: numeric_state
-    entity_id: sensor.my_volkswagen_state_of_charge
+    entity_id: sensor.my_id3_battery_level
     below: 60
-    enabled: false
+    enabled: true
   - condition: state
-    entity_id: device_tracker.my_volkswagen_tracker
-    state: home
+    entity_id: device_tracker.my_id3_position
+    state:
+    - home
     for:
       hours: 0
       minutes: 5
@@ -618,45 +620,37 @@
       message: Myenegi Zappi status is 'Fault'
   mode: single
 - id: '1718194374102'
-  alias: PV Opt stop zappi when discharging
+  alias: Check for battery discharing when car charging
   description: ''
   triggers:
   - entity_id:
-    - sensor.pvopt_status
-    to: Discharging
+    - sensor.car_charging_now
+    to: 'On'
     for:
-      hours: 0
       minutes: 1
-      seconds: 30
     trigger: state
   conditions:
   - condition: state
-    entity_id: binary_sensor.octopus_energy_a_281ee75f_intelligent_dispatching
-    state: 'off'
+    entity_id: binary_sensor.battery_discharging
+    state: 'Off'
     for:
-      hours: 0
-      minutes: 0
-      seconds: 20
-  - condition: not
-    conditions:
-    - condition: state
-      entity_id: select.myenergi_zappi_24876502_charge_mode
-      state: Stopped
+      minutes: 1
   actions:
-  - device_id: aa6bc65a79469914908d8112506036e5
-    domain: select
-    entity_id: 4c65227b1c8871981a23aed1af73607e
-    type: select_option
-    option: Stopped
-  - metadata: {}
-    data: {}
-    target:
-      entity_id: switch.octopus_energy_a_281ee75f_intelligent_smart_charge
-    enabled: false
-    action: switch.turn_off
-  - data:
-      message: PVOPT discharging, setting zappi to stop
-    action: notify.all_devices
+  - action: notify.mobile_app_iphone
+    data:
+      title: Predbat Car Charging Issue
+      message: "{{now().strftime('%-d %b %H:%M')}} ISSUE:\n Car is charging but battery
+        is still discharging\n"
+      data:
+        visibility: public
+        persistent: true
+        push:
+          sound:
+            name: default
+            critical: 1
+            volume: 0.8
+        sticky: true
+        color: red
   mode: single
 - id: '1718194683089'
   alias: PV Opt set zappi to eco+ after discharging
@@ -780,7 +774,7 @@
   use_blueprint:
     path: omerfaruk-aran/notification_blueprint.yaml
     input:
-      sensor_entity: sensor.samsung_ashp_error_code
+      sensor_entity: sensor.m5atom_dev_error_code
       is_ios: true
       notify_device: 8ce10e80229e57f8be8e0c1354c0321e
 - id: '1736367634550'
@@ -1155,7 +1149,7 @@
       minutes: 5
       seconds: 0
     variables:
-      message: Car charging status status is {{ states('sensor.my_volkswagen_charging_state')
+      message: Car charging status status is {{ states('sensor.my_id3_charging_state')
         }}
   - trigger: state
     entity_id:
@@ -1189,3 +1183,59 @@
     path: BottlecapDave/octopus_energy_spin_wheel_of_fortune_single.yml.yaml
     input:
       wheel_of_fortune_spins: sensor.octopus_energy_a_281ee75f_wheel_of_fortune_spins_electricity
+- id: '1762504915617'
+  alias: Arriving Home at night
+  description: ''
+  use_blueprint:
+    path: panhans/zone_notification_extended.yaml
+    input:
+      persons:
+      - person.ann_clark
+      - person.gary_clark
+      zones:
+      - zone.home
+      duration:
+        hours: 0
+        minutes: 0
+        seconds: 20
+      notify_device: 8ce10e80229e57f8be8e0c1354c0321e
+      custom_conditions_arriving:
+      - condition: and
+        conditions:
+        - condition: sun
+          after: sunset
+        - condition: sun
+          before: sunrise
+        enabled: false
+      message_arriving: '{{ person }} arrives at {{ zone }}.'
+      custom_action_arriving:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.door_lights
+        enabled: false
+      is_leaving_notification_enabled: true
+- id: '1763631223156'
+  alias: Calibrate Landing external temperature
+  description: ''
+  use_blueprint:
+    path: kvanbiesen/calib_trv_external_temp.yaml
+    input:
+      external_temp: sensor.main_bedroom_temperature
+      climate_names:
+      - climate.landing
+      offset_factor: -1
+      time_delay: 1
+- id: '1763888652056'
+  alias: Zone Notification Extended
+  description: ''
+  use_blueprint:
+    path: panhans/zone_notification_extended.yaml
+    input:
+      persons:
+      - person.gary_clark
+      - person.ann_clark
+      notify_device: 8ce10e80229e57f8be8e0c1354c0321e
+      zones:
+      - zone.home
