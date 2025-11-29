@@ -1,0 +1,8 @@
+---
+# combine solis battery sensos into a single entity, +v discharging, -ve charging
+- sensor:
+  - name: Battery Power
+    unique_id: template_sensor_battery_power
+    state: >
+      {{ (states('sensor.solax_battery_output_energy') | float +
+      (states('sensor.solax_battery_input_energy') | float * -1)) | float}}
