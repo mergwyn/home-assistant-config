@@ -5,7 +5,7 @@
 
 - platform: statistics
   # TODO change from Power to Energy
-  name: ASHP Power Consumed Last Minute Clamp
+  name: ASHP Last Minute Power Consumed Clamp
   entity_id: sensor.ashp_clamp_power
   state_characteristic: average_linear
   unique_id: statistics_sensor_clamp_energy_consumed_last_minute
@@ -33,7 +33,7 @@
 
 - platform: statistics
   name: ASHP Last Hour Heat Produced ESP
-  entity_id: sensor.m5atom_dev_total_produced_heat
+  entity_id: sensor.m5atom_dev_total_produced_energy
   unique_id: statistics_sensor_atom_last_hour_heat_produced
   state_characteristic: change
   max_age:
