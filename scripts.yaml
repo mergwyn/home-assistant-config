@@ -45,3 +45,59 @@ set_dhw_temperature:
   description: ''
   icon: mdi:water
   alias: Set DHW Temperature
+set_climate_temperature:
+  sequence:
+  - enabled: false
+    alias: Notify that the thermostat is being turned on
+    action: notify.notify
+    data:
+      message: 'Setting thermostat to {{ temperature }} ({{ mode }})
+
+        '
+  - action: select.select_option
+    metadata: {}
+    data:
+      option: '{{ mode }}'
+    target:
+      entity_id: '{{ "climate." ~ climate }}
+
+        '
+    enabled: true
+  - action: climate.set_temperature
+    metadata: {}
+    data:
+      temperature: '{{ temperature }}'
+    target:
+      entity_id: '{{ "climate." ~ climate }}
+
+        '
+  - action: climate.turn_off
+    target:
+      entity_id: '{{ "climate." ~ climate }}
+
+        '
+    data: {}
+  - wait_template: '{{ is_state(''climate.'' ~ climate, ''off'') }}'
+    timeout: 00:00:05
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - action: climate.turn_on
+    target:
+      entity_id: '{{ "climate." ~ climate }}
+
+        '
+    data: {}
+  fields:
+    temperature:
+      description: The temperature to set the thermostat to
+      example: 48
+      default: 48
+  variables:
+    mode: Standard
+    climate: m5atom_dev_hot_water
+  description: ''
+  icon: mdi:thermostat-auto
+  alias: Set Climate Temperature
