@@ -38,12 +38,12 @@
       {% endif -%}
 
 - sensor:
-  - name: ASHP COP - Last Min Clamp
+  - name: ASHP COP - Last Minute Clamp
     unique_id: template_sensor_cop_last_min
     state_class: measurement
     icon: mdi:chart-bar
     state: >
-      {% set generated = states('sensor.m5atom_dev_power_produced_last_minute') | float(0) %}
+      {% set generated = states('sensor.m5atom_dev_last_minute_heat_generated') | float(0) %}
       {% set consumed = states('sensor.ashp_power_consumed_last_minute_clamp') | float(0) %}
       {% if generated == 0 or consumed == 0 -%}0{% else -%}
       {{ [generated / consumed, 8] | min | round(2) | float(0)}}
