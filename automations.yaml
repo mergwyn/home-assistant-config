@@ -625,14 +625,14 @@
   triggers:
   - entity_id:
     - sensor.car_charging_now
-    to: 'On'
+    to: 'on'
     for:
       minutes: 1
     trigger: state
   conditions:
   - condition: state
     entity_id: binary_sensor.battery_discharging
-    state: 'Off'
+    state: 'on'
     for:
       minutes: 1
   actions:
@@ -1013,10 +1013,10 @@
       seconds: 0
   - trigger: time
     id: Hot Water Off
-    at: '17:55:00'
+    at: '15:58:00'
+    enabled: true
     weekday:
-    - sun
-    enabled: false
+    - sat
   actions:
   - choose:
     - conditions:
@@ -1024,20 +1024,23 @@
         id:
         - Hot Water On
       sequence:
-      - action: script.set_dhw_temperature
+      - action: script.set_climate_temperature
         metadata: {}
         data:
+          climate: '{{ climate }}'
           temperature: '{{ boost_temp | float}}'
     - conditions:
       - condition: trigger
         id:
         - Hot Water Off
       sequence:
-      - action: script.set_dhw_temperature
+      - action: script.set_climate_temperature
         metadata: {}
         data:
+          climate: '{{ climate }}'
           temperature: '{{ day_temp | float}}'
   variables:
+    climate: m5atom_dev_hot_water
     min_temp: 30
     max_temp: 55
     legionella: '{{ states(''input_number.dhw_legionella'') | float }}'
@@ -1200,13 +1203,16 @@
         seconds: 20
       notify_device: 8ce10e80229e57f8be8e0c1354c0321e
       custom_conditions_arriving:
-      - condition: and
+      - condition: or
         conditions:
         - condition: sun
           after: sunset
         - condition: sun
           before: sunrise
-        enabled: false
+        enabled: true
+      - condition: template
+        value_template: '{{ now() - states(''sensor.uptime'')|as_datetime > timedelta(
+          minutes = 5) }}'
       message_arriving: '{{ person }} arrives at {{ zone }}.'
       custom_action_arriving:
       - action: light.turn_on
@@ -1214,8 +1220,12 @@
         data: {}
         target:
           entity_id: light.door_lights
-        enabled: false
+        enabled: true
       is_leaving_notification_enabled: true
+      custom_conditions_leaving:
+      - condition: template
+        value_template: '{{ now() - states(''sensor.uptime'')|as_datetime > timedelta(
+          minutes = 5) }}'
 - id: '1763631223156'
   alias: Calibrate Landing external temperature
   description: ''
@@ -1227,15 +1237,3 @@
       - climate.landing
       offset_factor: -1
       time_delay: 1
-- id: '1763888652056'
-  alias: Zone Notification Extended
-  description: ''
-  use_blueprint:
-    path: panhans/zone_notification_extended.yaml
-    input:
-      persons:
-      - person.gary_clark
-      - person.ann_clark
-      notify_device: 8ce10e80229e57f8be8e0c1354c0321e
-      zones:
-      - zone.home
