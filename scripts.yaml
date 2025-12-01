@@ -101,3 +101,73 @@ set_climate_temperature:
   description: ''
   icon: mdi:thermostat-auto
   alias: Set Climate Temperature
+set_climate:
+  sequence:
+  - condition: template
+    alias: Check variables are set
+    value_template: '{{ (temperature is defined or preset is defined) and climate
+      is defined }}'
+    enabled: true
+  - alias: Notify that the thermostat is being turned on
+    action: notify.notify
+    data:
+      message: 'Setting thermostat to {{ temperature }} {{ preset }}
+
+        '
+    enabled: false
+  - alias: Set preset or temperature
+    choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ preset is defined }}'
+      sequence:
+      - alias: Setting preset
+        action: climate.set_preset_mode
+        metadata: {}
+        data:
+          preset_mode: '{{ preset }}'
+        target:
+          entity_id: '{{ "climate." ~ climate }}
+
+            '
+        enabled: true
+    - conditions:
+      - condition: template
+        value_template: '{{ temperature is defined }}'
+      sequence:
+      - alias: Setting temperature
+        action: climate.set_temperature
+        metadata: {}
+        data:
+          temperature: '{{ temperature }}'
+        target:
+          entity_id: '{{ "climate." ~ climate }}
+
+            '
+  - action: climate.turn_off
+    target:
+      entity_id: '{{ "climate." ~ climate }}
+
+        '
+    data: {}
+  - wait_template: '{{ is_state(''climate.'' ~ climate, ''off'') }}'
+    timeout: 00:00:05
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - action: climate.turn_on
+    target:
+      entity_id: '{{ "climate." ~ climate }}
+
+        '
+    data: {}
+  fields:
+    temperature:
+      description: Temperature
+    preset:
+      description: preset
+  description: Set a climate temperature or preset mode
+  icon: mdi:thermostat-auto
+  alias: Set Climate
