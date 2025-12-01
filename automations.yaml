@@ -1024,7 +1024,7 @@
         id:
         - Hot Water On
       sequence:
-      - action: script.set_climate_temperature
+      - action: script.set_climate
         metadata: {}
         data:
           climate: '{{ climate }}'
@@ -1034,7 +1034,7 @@
         id:
         - Hot Water Off
       sequence:
-      - action: script.set_climate_temperature
+      - action: script.set_climate
         metadata: {}
         data:
           climate: '{{ climate }}'
@@ -1209,7 +1209,7 @@
           after: sunset
         - condition: sun
           before: sunrise
-        enabled: true
+        enabled: false
       - condition: template
         value_template: '{{ now() - states(''sensor.uptime'')|as_datetime > timedelta(
           minutes = 5) }}'
@@ -1226,6 +1226,7 @@
       - condition: template
         value_template: '{{ now() - states(''sensor.uptime'')|as_datetime > timedelta(
           minutes = 5) }}'
+        enabled: false
 - id: '1763631223156'
   alias: Calibrate Landing external temperature
   description: ''
