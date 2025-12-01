@@ -2,6 +2,18 @@
 # templates:
 #
 - sensor:
+  - name: ASHP Total Energy Consumed Adjusted
+    unique_id: template_sensor_total_energy_consumed_adjusted
+    state_class: total_increasing
+    device_class: energy
+    unit_of_measurement: kWh
+    availability: >
+      {{ states("sensor.ashp_clamp_energy") != "unavailable"
+      and states("sensor.ashp_clamp_energy") != "unknown" }}
+    state: >
+      {{ (states('sensor.ashp_clamp_energy') | float(0) - 604.930 + 13254.418) | float(0) }}
+
+- sensor:
   - name: Landing Temperature
     unique_id: template_sensor_landing_temperature
     state_class: measurement
