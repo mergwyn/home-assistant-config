@@ -1,8 +1,31 @@
 ---
-# combine solis battery sensos into a single entity, +v discharging, -ve charging
 - sensor:
+  - name: Solax Grid Export Power
+    unique_id: solax_grid_export_power
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
+    state: >-
+      {{max(states('sensor.solax_meter_active_power') | float(0),0)}}
+
+  - name: Solax Grid Import Power
+    unique_id: solax_grid_import_power
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
+    state: >-
+      {{max(-(states('sensor.solax_meter_active_power') | float(0)),0)}}
+
+# combine solis battery sensors into a single entity, +v discharging, -ve charging
   - name: Battery Power
     unique_id: template_sensor_battery_power
+    availability: >
+      {{
+      states("sensor.solax_battery_output_energy") != "unavailable"
+      and states("sensor.solax_battery_output_energy") != "unknown"
+      and states("sensor.solax_battery_input_energy") != "unavailable"
+      and states("sensor.solax_battery_input_energy") != "unknown"
+      }}
     state: >
       {{ (states('sensor.solax_battery_output_energy') | float +
       (states('sensor.solax_battery_input_energy') | float * -1)) | float}}
