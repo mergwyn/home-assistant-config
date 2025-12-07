@@ -19,6 +19,9 @@
 # combine solis battery sensors into a single entity, +v discharging, -ve charging
   - name: Battery Power
     unique_id: template_sensor_battery_power
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
     availability: >
       {{
       states("sensor.solax_battery_output_energy") != "unavailable"
@@ -27,5 +30,23 @@
       and states("sensor.solax_battery_input_energy") != "unknown"
       }}
     state: >
-      {{ (states('sensor.solax_battery_output_energy') | float +
+     {{ (states('sensor.solax_battery_output_energy') | float +
       (states('sensor.solax_battery_input_energy') | float * -1)) | float}}
+
+
+# Sum panels to get Solar production
+  - name: Solis DV solar production
+    unique_id: template_sensor_solis_solar_production
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
+    availability: >
+      {{
+      states("sensor.solax_pv_power_1") != "unavailable"
+      and states("sensor.solax_pv_power_1") != "unknown"
+      and states("sensor.solax_pv_power_2") != "unavailable"
+      and states("sensor.solax_pv_power_2") != "unknown"
+      }}
+    state: >
+      {{ (states('sensor.solax_pv_power_1') | float(0) +
+      (states('sensor.solax_pv_power_2') | float(0))) | float(0)}}
