@@ -181,6 +181,8 @@ calibrate_thermostat_from_external_sensor:
       description: eg number.landing_thermostat_local_temperature_calibration
     sensor_extern:
       description: eg sensor.main_bedroom_temperature
+  trace:
+    stored_traces: 20
   sequence:
   - action: number.set_value
     metadata: {}
@@ -195,7 +197,7 @@ calibrate_thermostat_from_external_sensor:
         | float %}\n{# Get thermostat temperature and setpoint #}\n{% set thermo_cur
         = state_attr(s_thermostat, \"current_temperature\") | float %}\n{% set thermo_setpoint
         = state_attr(s_thermostat, \"temperature\") or 0 | float %}\n{# Current not
-        rounded offset #} {% set cal_new = extern - thermo_cur %}\n{# Adjust value
+        rounded offset #}\n{% set cal_new = extern - thermo_cur %}\n{# Adjust value
         before rounding, based on above or bellow the setpoint #}\n{% set expected_new
         = thermo_cur + cal_new %}\n{% if expected_new >= thermo_setpoint %}\n{% set
         cal_new = cal_new + cal_step / 2 %}  \n{% else %}\n{% set cal_new = cal_new
