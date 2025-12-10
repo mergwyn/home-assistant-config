@@ -1209,7 +1209,7 @@
           after: sunset
         - condition: sun
           before: sunrise
-        enabled: false
+        enabled: true
       - condition: template
         value_template: '{{ now() - states(''sensor.uptime'')|as_datetime > timedelta(
           minutes = 5) }}'
@@ -1218,15 +1218,15 @@
       - action: light.turn_on
         metadata: {}
         data: {}
-        target:
-          entity_id: light.door_lights
         enabled: true
-      is_leaving_notification_enabled: true
+        target:
+          entity_id: light.outside_lights_2
+      is_leaving_notification_enabled: false
       custom_conditions_leaving:
       - condition: template
         value_template: '{{ now() - states(''sensor.uptime'')|as_datetime > timedelta(
           minutes = 5) }}'
-        enabled: false
+        enabled: true
 - id: '1763631223156'
   alias: Calibrate Landing external temperature
   description: ''
@@ -1238,3 +1238,137 @@
       - climate.landing
       offset_factor: -1
       time_delay: 1
+- id: '1765363313479'
+  alias: Thermostat offset update
+  description: ''
+  triggers:
+  - trigger: time_pattern
+    minutes: /5
+  conditions: []
+  actions:
+  - repeat:
+      for_each:
+      - thermostat: climate.living_room_thermostat
+        calibration: number.living_room_thermostat_local_temperature_calibration
+        sensor_extern: sensor.living_room_external_temperature
+      - thermostat: climate.family_room_thermostat
+        calibration: number.family_room_thermostat_local_temperature_calibration
+        sensor_extern: sensor.family_room_external_temperature
+      - thermostat: climate.office_thermostat
+        calibration: number.office_thermostat_local_temperature_calibration
+        sensor_extern: sensor.office_external_temperature
+      - thermostat: climate.hall_thermostat
+        calibration: number.hall_thermostat_local_temperature_calibration
+        sensor_extern: sensor.hall_external_temperature
+      - thermostat: climate.landing_thermostat
+        calibration: number.landing_thermostat_local_temperature_calibration
+        sensor_extern: sensor.main_bedroom_temperature
+      sequence:
+      - data:
+          entity_id: '{{ repeat.item.calibration }}'
+          value: "{% set s_calibration = repeat.item.calibration %}\n{% set s_sensor_extern
+            = repeat.item.sensor_extern %}\n{% set s_thermostat = repeat.item.thermostat
+            %}\n{# Get external temperature #}\n{% set extern = states(s_sensor_extern)
+            | float %}\n{# Get current calibration settings #}\n{% set cal_curr =
+            states(s_calibration) | float %}\n{% set cal_min = state_attr(s_calibration,
+            \"min\") | float %}  \n{% set cal_max = state_attr(s_calibration, \"max\")
+            | float %} \n{% set cal_step = state_attr(s_calibration, \"step\") | float
+            %}\n{# Get thermostat temperature and setpoint #}\n{% set thermo_cur =
+            state_attr(s_thermostat, \"current_temperature\") | float %}\n{% set thermo_setpoint
+            = state_attr(s_thermostat, \"temperature\") or 0 | float %}\n{# Current
+            not rounded offset #} {% set cal_new = extern - thermo_cur %}\n{# Adjust
+            value before rounding, based on above or bellow the setpoint #}\n{% set
+            expected_new = thermo_cur + cal_new %}\n{% if expected_new >= thermo_setpoint
+            %}\n{% set cal_new = cal_new + cal_step / 2 %}  \n{% else %}\n{% set cal_new
+            = cal_new - cal_step / 2 %}\n{% endif %}\n{# New rounded setpoint #}\n{%
+            set cal_new = ( cal_new / cal_step ) | round * cal_step + cal_curr %}\n{#
+            min/max adjusted return value #}\n{{ min(max(cal_new, cal_min), cal_max)
+            }}\n             \n"
+        action: number.set_value
+  mode: single
+- id: '1765368696331'
+  alias: Calibrate thermostat on change
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.office_external_temperature
+    id: office
+    variables:
+      thermostat: climate.office_thermostat
+      calibration: number.office_thermostat_local_temperature_calibration
+      sensor_extern: sensor.office_external_temperature
+  - trigger: state
+    entity_id:
+    - sensor.living_room_external_temperature
+    id: living room
+    variables:
+      thermostat: climate.living_room_thermostat
+      calibration: number.living_room_thermostat_local_temperature_calibration
+      sensor_extern: sensor.living_room_external_temperature
+  - trigger: state
+    entity_id:
+    - sensor.family_room_external_temperature
+    id: family room
+    variables:
+      thermostat: climate.family_room_thermostat
+      calibration: number.family_room_thermostat_local_temperature_calibration
+      sensor_extern: sensor.family_room_external_temperature
+  - trigger: state
+    entity_id:
+    - sensor.hall_external_temperature
+    id: hall
+    variables:
+      thermostat: climate.hall_thermostat
+      calibration: number.hall_thermostat_local_temperature_calibration
+      sensor_extern: sensor.hall_external_temperature
+  - trigger: state
+    entity_id:
+    - sensor.main_bedroom_temperature
+    id: bedroom
+    variables:
+      thermostat: climate.landing_thermostat
+      calibration: number.landing_thermostat_local_temperature_calibration
+      sensor_extern: sensor.main_bedroom_temperature
+  conditions: []
+  actions:
+  - action: script.calibrate_thermostat_from_external_sensor
+    metadata: {}
+    data:
+      thermostat: '{{ thermostat }}'
+      calibration: '{{ calibration }}'
+      sensor_extern: '{{ sensor_extern }}'
+  mode: single
+- id: '1765376622934'
+  alias: Calibrate thermostat periodic
+  description: ''
+  triggers:
+  - trigger: time_pattern
+    minutes: /5
+  conditions: []
+  actions:
+  - repeat:
+      for_each:
+      - thermostat: climate.living_room_thermostat
+        calibration: number.living_room_thermostat_local_temperature_calibration
+        sensor_extern: sensor.living_room_external_temperature
+      - thermostat: climate.family_room_thermostat
+        calibration: number.family_room_thermostat_local_temperature_calibration
+        sensor_extern: sensor.family_room_external_temperature
+      - thermostat: climate.office_thermostat
+        calibration: number.office_thermostat_local_temperature_calibration
+        sensor_extern: sensor.office_external_temperature
+      - thermostat: climate.hall_thermostat
+        calibration: number.hall_thermostat_local_temperature_calibration
+        sensor_extern: sensor.hall_external_temperature
+      - thermostat: climate.landing_thermostat
+        calibration: number.landing_thermostat_local_temperature_calibration
+        sensor_extern: sensor.main_bedroom_temperature
+      sequence:
+      - action: script.calibrate_thermostat_from_external_sensor
+        metadata: {}
+        data:
+          thermostat: '{{ repeat.item.thermostat }}'
+          calibration: '{{ repeat.item.calibration }}'
+          sensor_extern: '{{ repeat.item.sensor_extern }}'
+  mode: single
