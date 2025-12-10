@@ -7,6 +7,7 @@ emoncms_history:
   whitelist:
     - sensor.samsung_ashp_dhw_status
     - sensor.samsung_ashp_zone_heating_status
+    # - sensor.status_of_heating_circuit
     - sensor.samsung_ashp_heat_pump_outdoor_temperature
     - sensor.samsung_ashp_heat_pump_heat_generated_total
     - sensor.samsung_ashp_heat_pump_heat_generated_last_min
