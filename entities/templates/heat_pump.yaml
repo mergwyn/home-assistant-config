@@ -50,6 +50,17 @@
       {{ [generated / consumed, 8] | min | round(2) | float(0)}}
       {% endif -%}
 
+- sensor:
+  - name: ASHP COP - Total
+    unique_id: template_sensor_cop_total
+    state_class: measurement
+    icon: mdi:chart-bar
+    state: >
+      {% set generated = states('sensor.m5atom_dev_total_produced_energy') | float(0) %}
+      {% set consumed = states('sensor.ashp_total_energy_consumed_adjusted') | float(0) %}
+      {% if generated == 0 or consumed == 0 -%}0{% else -%}
+      {{ [generated / consumed, 8] | min | round(2) | float(0)}}
+      {% endif -%}
 
 # Temperature sensors for climate
 # - sensor:
