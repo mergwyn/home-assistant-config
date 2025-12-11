@@ -168,6 +168,8 @@ set_climate:
       description: Temperature
     preset:
       description: preset
+    climate:
+      description: eg landing
   description: Set a climate temperature or preset mode
   icon: mdi:thermostat-auto
   alias: Set Climate
