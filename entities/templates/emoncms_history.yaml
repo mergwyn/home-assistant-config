@@ -37,7 +37,7 @@
     state: >
       {{ states('sensor.m5atom_dev_3_way_valve') | int(0) }}
  
-  - name: Status of Howt Water circuit
+  - name: Status of Hot Water circuit
     unique_id: template_sensor_emoncms_status_of_hot_water
     state_class: measurement
     state: >
