@@ -1298,7 +1298,7 @@
   description: ''
   triggers:
   - trigger: time_pattern
-    minutes: /5
+    minutes: /2
   conditions: []
   actions:
   - repeat:
