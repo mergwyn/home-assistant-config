@@ -1,7 +1,0 @@
----
-utility_meter:
-  energy:
-    source: sensor.ashp_clamp_energy
-    name: ASHP Daily Energy Consumed Clamp
-    cycle: daily
-    unique_id: meter_sensor_clamp_daily_energy_consumed

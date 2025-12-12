@@ -19,8 +19,8 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+climate: !include_dir_merge_list entities/climates
+input_number: !include_dir_merge_named entities/input_numbers
 template: !include_dir_merge_list entities/templates
 sensor: !include_dir_merge_list entities/sensors
-utility_meter: !include_dir_merge_list entities/utility_meters
-climate: !include_dir_merge_list entities/climates
-input_numbers: !include_dir_merge_list entities/input_numbers
+utility_meter: !include_dir_merge_named entities/utility_meters
