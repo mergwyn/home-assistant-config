@@ -988,7 +988,7 @@
       include_easy_notify: disabled_easy_notify
       include_persistent_notification: enable_persistent_notification
 - id: '1738660541500'
-  alias: Hot water boost
+  alias: Cheap rate hot water boost
   description: ''
   triggers:
   - trigger: state
@@ -1011,12 +1011,26 @@
       hours: 0
       minutes: 1
       seconds: 0
-  - trigger: time
+  - trigger: state
+    id: Hot Water On
+    entity_id:
+    - input_boolean.hot_water_boost
+    to:
+    - 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  - trigger: state
     id: Hot Water Off
-    at: '15:58:00'
-    enabled: true
-    weekday:
-    - sat
+    entity_id:
+    - input_boolean.hot_water_boost
+    to:
+    - 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
   actions:
   - choose:
     - conditions:
@@ -1029,6 +1043,9 @@
         data:
           climate: '{{ climate }}'
           temperature: '{{ boost_temp | float}}'
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.hot_water_boost
     - conditions:
       - condition: trigger
         id:
@@ -1039,6 +1056,9 @@
         data:
           climate: '{{ climate }}'
           temperature: '{{ day_temp | float}}'
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.hot_water_boost
   variables:
     climate: m5atom_dev_hot_water
     min_temp: 30
@@ -1326,3 +1346,105 @@
           calibration: '{{ repeat.item.calibration }}'
           sensor_extern: '{{ repeat.item.sensor_extern }}'
   mode: single
+- id: '1765617311695'
+  alias: Cheap rate heating boost
+  description: ''
+  triggers:
+  - trigger: state
+    id: Boost On
+    entity_id:
+    - binary_sensor.target_timeframes_octopus_energy_import_heating_overnight_boost
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  - trigger: state
+    id: Boost Off
+    entity_id:
+    - binary_sensor.target_timeframes_octopus_energy_import_heating_overnight_boost
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  - trigger: state
+    id: Boost On
+    entity_id:
+    - input_boolean.heating_boost
+    to:
+    - 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  - trigger: state
+    id: Boost Off
+    entity_id:
+    - input_boolean.heating_boost
+    to:
+    - 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  conditions:
+  - condition: template
+    value_template: '{{ (not holiday_mode) and (states(''sensor.m5atom_dev_outdoor_temperature'')
+      | float < 10) }}
+
+      '
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - Boost On
+      sequence:
+      - action: script.set_climate
+        enabled: true
+        metadata: {}
+        data:
+          climate: downstairs
+          temperature: '{{ downstairs_boost | float}}'
+      - action: script.set_climate
+        enabled: true
+        metadata: {}
+        data:
+          climate: landing_thermostat
+          temperature: '{{ upstairs_boost | float}}'
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.heating_boost
+    - conditions:
+      - condition: trigger
+        id:
+        - Boost Off
+      sequence:
+      - action: script.set_climate
+        enabled: true
+        metadata: {}
+        data:
+          climate: downstairs
+          temperature: '{{ downstairs_comfort | float}}'
+      - action: script.set_climate
+        enabled: true
+        metadata: {}
+        data:
+          climate: landing_thermostat
+          temperature: '{{ upstairs_comfort | float}}'
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.heating_boost
+  mode: single
+  variables:
+    climate: m5atom_dev_hot_water
+    downstairs_boost: '{{ states(''input_number.downstairs_boost'') | float }}'
+    downstairs_comfort: '{{ states(''input_number.downstairs_comfort'') | float }}'
+    upstairs_boost: '{{ states(''input_number.landing_thermostat_boost'') | float
+      }}'
+    upstairs_comfort: '{{ states(''input_number.landing_thermostat_comfort'') | float
+      }}'
+    holiday_mode: '{{ states(''binary_sensor.holiday_mode'') | bool }}'
