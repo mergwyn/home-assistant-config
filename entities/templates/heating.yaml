@@ -1,6 +1,24 @@
 # ---
 # templates:
 #
+- binary_sensor:
+  - name: Upstairs Heating Active
+    description: |
+      Indicates if the upstairs (landing) heating is actively heating while downstairs is not
+      by checking the hvac_action of both thermostats.
+    unique_id: template_binary_sensor_upstairs_heating_active
+    icon: mdi:toggle-switch
+    availability: >
+      {{
+      states("climate.landing_thermostat") != "unavailable"
+      and states("climate.landing_thermostat") != "unknown"
+      and states("climate.downstairs") != "unavailable"
+      and states("climate.downstairs") != "unknown"
+      }}
+    state: >
+      {{ state_attr('climate.landing_thermostat', 'hvac_action') == 'heating'
+      and state_attr('climate.downstairs', 'hvac_action') == 'idle' }}
+
 - sensor:
   - name: ASHP Total Energy Consumed Adjusted
     unique_id: template_sensor_total_energy_consumed_adjusted
