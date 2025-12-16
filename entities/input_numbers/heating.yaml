@@ -7,7 +7,7 @@ downstairs_boost:
   max: 30
   step: 0.5
   unit_of_measurement: °C
-  icon: mdi:target
+  icon: mdi:rocket-launch
 
 downstairs_comfort:
   name: Downstairs comfort
@@ -15,7 +15,7 @@ downstairs_comfort:
   max: 30
   step: 0.5
   unit_of_measurement: °C
-  icon: mdi:target
+  icon: mdi:sofa
 
 downstairs_eco:
   name: Downstairs eco
@@ -23,7 +23,7 @@ downstairs_eco:
   max: 30
   step: 0.5
   unit_of_measurement: °C
-  icon: mdi:target
+  icon: mdi:leaf
 
 landing_thermostat_boost:
   name: Landing thermostat boost
@@ -31,7 +31,7 @@ landing_thermostat_boost:
   max: 30
   step: 0.5
   unit_of_measurement: °C
-  icon: mdi:target
+  icon: mdi:rocket-launch
 
 landing_thermostat_comfort:
   name: Landing thermostat comfort
@@ -39,7 +39,7 @@ landing_thermostat_comfort:
   max: 30
   step: 0.5
   unit_of_measurement: °C
-  icon: mdi:target
+  icon: mdi:sofa
 
 landing_thermostat_eco:
   name: Landing thermostat eco
@@ -47,4 +47,4 @@ landing_thermostat_eco:
   max: 30
   step: 0.5
   unit_of_measurement: °C
-  icon: mdi:target
+  icon: mdi:leaf
