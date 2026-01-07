@@ -3,9 +3,6 @@
 #
 - binary_sensor:
   - name: Upstairs Heating Active
-    description: |
-      Indicates if the upstairs (landing) heating is actively heating while downstairs is not
-      by checking the hvac_action of both thermostats.
     unique_id: template_binary_sensor_upstairs_heating_active
     icon: mdi:toggle-switch
     availability: >
