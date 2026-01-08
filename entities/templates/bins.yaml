@@ -1,15 +1,15 @@
   - sensor:
-      - name: "Household Waste Collection Day"
+      - name: Household Waste Collection Day
         state: >
           {% set date = state_attr('sensor.rievaulx_house_household_waste_next_collection_date', 'next_collection') %}
           {{ date.strftime('%A, %d/%m/%Y') if date else 'Unknown' }}
         
-      - name: "Recycling Collection Day"
+      - name: Recycling Collection Day
         state: >
           {% set date = state_attr('sensor.rievaulx_house_recycling_next_collection_date', 'next_collection') %}
           {{ date.strftime('%A, %d/%m/%Y') if date else 'Unknown' }}
         
-      - name: "Garden Waste Collection Day"
+      - name: Garden Waste Collection Day
         state: >
           {% set date = state_attr('sensor.rievaulx_house_garden_waste_next_collection_date', 'next_collection') %}
           {{ date.strftime('%A, %d/%m/%Y') if date else 'Unknown' }}
