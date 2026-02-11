@@ -1,7 +1,7 @@
 template:
   - trigger:
       - platform: time_pattern
-        hours: "/1"
+        hours: /1
       - platform: homeassistant
         event: start
     action:
@@ -12,9 +12,9 @@ template:
           type: daily
         response_variable: rain_forecast
     sensor:
-      - name: "Open Meteo Day Total Precipitation"
+      - name: Open Meteo Day Total Precipitation
         unique_id: open_meteo_daily_rain_total
-        unit_of_measurement: "mm"
+        unit_of_measurement: mm
         state: "{{ rain_forecast['weather.open_meteo'].forecast[0].precipitation }}"
         attributes:
           probability: "{{ rain_forecast['weather.open_meteo'].forecast[0].precipitation_probability }}"
