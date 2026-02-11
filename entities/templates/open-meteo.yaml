@@ -1,0 +1,20 @@
+template:
+  - trigger:
+      - platform: time_pattern
+        hours: "/1"
+      - platform: homeassistant
+        event: start
+    action:
+      - action: weather.get_forecasts
+        target:
+          entity_id: weather.open_meteo # Double check this name in Developer Tools
+        data:
+          type: daily
+        response_variable: rain_forecast
+    sensor:
+      - name: "Open Meteo Day Total Precipitation"
+        unique_id: open_meteo_daily_rain_total
+        unit_of_measurement: "mm"
+        state: "{{ rain_forecast['weather.open_meteo'].forecast[0].precipitation }}"
+        attributes:
+          probability: "{{ rain_forecast['weather.open_meteo'].forecast[0].precipitation_probability }}"
