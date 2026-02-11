@@ -6,3 +6,12 @@
     unit_of_measurement: '%'
     state: >
       {{ (states('sensor.kitchen_roof_humidity') | float(0)) - (states('sensor.hall_external_humidity') | float(0)) }}
+
+- binary_sensor:
+    - name: Wall Drying Status
+      unique_id: template_sensor_wall_drying_status
+      device_class: moisture
+      state: >
+        {% set sensor = states('sensor.kitchen_roof_humidity_stats') | float %}
+        {# Compare current value with mean over last 20 samples #}
+        {{ (states('sensor.kitchen_roof_humidity') | float) < sensor }}

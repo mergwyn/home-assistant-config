@@ -1,0 +1,5 @@
+- platform: statistics
+  name: Kitchen Roof Humidity Stats
+  entity_id: sensor.kitchen_roof_humidity
+  state_characteristic: mean
+  sampling_size: 20
