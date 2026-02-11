@@ -1,0 +1,9 @@
+---
+  - platform: trend
+    sensors:
+      wall_drying_status:
+        entity_id: sensor.kitchen_roof_humidity
+        device_class: moisture
+        invert: true  # This makes it "On" when moisture is falling
+        max_samples: 20
+        sample_duration: 86400 # Looks at the last 24 hours
