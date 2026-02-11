@@ -13,3 +13,41 @@
         state: >
           {% set date = state_attr('sensor.rievaulx_house_garden_waste_next_collection_date', 'next_collection') %}
           {{ date.strftime('%A, %d/%m/%Y') if date else 'Unknown' }}
+
+      - name: Next Bin Collection
+        unique_id: rievaulx_next_bin
+        icon: mdi:trash-can
+        # This part sets the state to the number of days
+        state: >
+          {% set bin_sensors = [
+            'sensor.rievaulx_house_household_waste_days_until_collection',
+            'sensor.rievaulx_house_recycling_days_until_collection',
+            'sensor.rievaulx_house_garden_waste_days_until_collection'
+          ] %}
+          {% set days_list = bin_sensors | map('states') | map('int', default=99) | list %}
+          {{ days_list | min }}
+        attributes:
+          # This part lists the bin types
+          bin_types: >
+            {% set bin_sensors = [
+              'sensor.rievaulx_house_household_waste_days_until_collection',
+              'sensor.rievaulx_house_recycling_days_until_collection',
+              'sensor.rievaulx_house_garden_waste_days_until_collection'
+            ] %}
+            {% set bin_map = {
+              'sensor.rievaulx_house_household_waste_days_until_collection': 'Household',
+              'sensor.rievaulx_house_recycling_days_until_collection': 'Recycling',
+              'sensor.rievaulx_house_garden_waste_days_until_collection': 'Green'
+            } %}
+            {% set next_days = states('sensor.next_bin_collection') %}
+            {% set ns = namespace(types=[]) %}
+            {% for entity, label in bin_map.items() %}
+              {% if states(entity) == next_days %}
+                {% set ns.types = ns.types + [label] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.types | join(', ') }}
+          # This adds the actual date as an attribute
+          collection_date: >
+            {% set days = states('sensor.next_bin_collection') | int(0) %}
+            {{ (now() + timedelta(days=days)).strftime('%d/%m/%Y') }}
