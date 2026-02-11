@@ -1309,7 +1309,7 @@
   alias: 'Alert: Kitchen Wall Moisture Increase'
   description: Pings phone if wall moisture rises significantly above house baseline
   triggers:
-  - entity_id: sensor.lean_to_roof_humidity
+  - entity_id: sensor.wall_moisture_delta
     above: 15
     for:
       hours: 1
@@ -1320,7 +1320,7 @@
   actions:
   - data:
       title: ⚠️ Roof Leak Warning
-      message: Wall moisture is {{ states('sensor.lean_to_roof_humidity') }}% - significantly
+      message: Wall moisture is {{ states('sensor.kitchen_roof_humidity') }}% - significantly
         higher than house average.
       data:
         priority: high
