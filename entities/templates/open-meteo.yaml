@@ -1,20 +1,21 @@
-template:
-  - trigger:
-      - platform: time_pattern
-        hours: /1
-      - platform: homeassistant
-        event: start
-    action:
-      - action: weather.get_forecasts
-        target:
-          entity_id: weather.open_meteo # Double check this name in Developer Tools
-        data:
-          type: daily
-        response_variable: rain_forecast
-    sensor:
-      - name: Open Meteo Day Total Precipitation
-        unique_id: open_meteo_daily_rain_total
-        unit_of_measurement: mm
-        state: "{{ rain_forecast['weather.open_meteo'].forecast[0].precipitation }}"
-        attributes:
-          probability: "{{ rain_forecast['weather.open_meteo'].forecast[0].precipitation_probability }}"
+---
+- trigger:
+    - platform: time_pattern
+      minutes: "/30"
+    - platform: homeassistant
+      event: start
+  action:
+    - action: weather.get_forecasts
+      target:
+        entity_id: weather.home
+      data:
+        type: daily
+      # This variable holds the result of the weather service call
+      response_variable: daily_data
+  sensor:
+    - name: "Open Meteo Day Total Precipitation"
+      unique_id: open_meteo_daily_rain_total
+      unit_of_measurement: "mm"
+      device_class: precipitation
+      # [0] targets 'today'. Use | float(0) to ensure the chart gets a number
+      state: "{{ daily_data['weather.home'].forecast[0].precipitation | float(0) }}"
