@@ -173,6 +173,9 @@ set_climate:
   description: Set a climate temperature or preset mode
   icon: mdi:thermostat-auto
   alias: Set Climate
+  mode: queued
+  trace:
+    stored_traces: 20
 calibrate_thermostat_from_external_sensor:
   alias: Calibrate thermostat from external sensor
   description: ''
