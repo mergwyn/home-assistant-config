@@ -23,4 +23,5 @@ climate: !include_dir_merge_list entities/climates
 input_number: !include_dir_merge_named entities/input_numbers
 template: !include_dir_merge_list entities/templates
 sensor: !include_dir_merge_list entities/sensors
+binary_sensor: !include_dir_merge_list entities/binary_sensors
 utility_meter: !include_dir_merge_named entities/utility_meters
