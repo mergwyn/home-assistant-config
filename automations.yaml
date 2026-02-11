@@ -169,143 +169,6 @@
     data:
       name: 'WeeklyBackup: {{ now().strftime(''%A, %B %-d, %Y'') }}'
       keep_days: 14
-- id: '1697810951630'
-  alias: Zappi start boost charge
-  description: Needed to fix ID3 "charging delayed" issue
-  triggers:
-  - entity_id:
-    - sensor.myenergi_zappi_24876502_status
-    to: Boosting
-    for:
-      hours: 0
-      minutes: 2
-      seconds: 0
-    trigger: state
-  conditions:
-  - condition: or
-    conditions:
-    - condition: state
-      entity_id: sensor.myenergi_zappi_24876502_plug_status
-      state: Waiting for EV
-      for:
-        hours: 0
-        minutes: 2
-        seconds: 0
-    - condition: state
-      entity_id: sensor.myenergi_zappi_24876502_plug_status
-      state: EV Connected
-      for:
-        hours: 0
-        minutes: 2
-        seconds: 0
-  - condition: not
-    conditions:
-    - condition: device
-      device_id: aa6bc65a79469914908d8112506036e5
-      domain: select
-      entity_id: 4c65227b1c8871981a23aed1af73607e
-      type: selected_option
-      option: Stopped
-  actions:
-  - repeat:
-      sequence:
-      - data:
-          message: Zappi status is "Boosting" attempt {{repeat.index}} to start charge
-        enabled: false
-        action: notify.all_devices
-      - data: {}
-        target:
-          entity_id: button.my_id_3_start_charging
-        action: button.press
-      - delay:
-          hours: 0
-          minutes: 1
-          seconds: 30
-          milliseconds: 0
-      until:
-      - condition: template
-        value_template: "{{ (states('sensor.myenergi_zappi_24876502_plug_status')
-          == \"Charging\") or\n    repeat.index == 10 }}"
-  - if:
-    - condition: state
-      entity_id: sensor.myenergi_zappi_24876502_plug_status
-      state: Charging
-      for:
-        hours: 0
-        minutes: 0
-        seconds: 0
-    then:
-    - data:
-        message: Zappi has succesfuly started boost
-      action: notify.all_devices
-    else:
-    - data:
-        message: Zappi failed to start boost
-      action: notify.all_devices
-  mode: single
-- id: '1697814549000'
-  alias: Zappi reset car for eco+
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.myenergi_zappi_24876502_status
-    to: Conpleted
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
-  condition:
-  - condition: state
-    entity_id: sensor.myenergi_zappi_24876502_status
-    state: Paused
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 10
-  - condition: or
-    conditions:
-    - condition: state
-      entity_id: sensor.myenergi_zappi_24876502_status
-      state: Paused
-      for:
-        hours: 0
-        minutes: 5
-        seconds: 0
-    - condition: state
-      entity_id: sensor.myenergi_zappi_24876502_status
-      state: Completed
-      for:
-        hours: 0
-        minutes: 5
-        seconds: 0
-  - condition: state
-    entity_id: sensor.myenergi_zappi_24876502_plug_status
-    state: EV connected
-  - condition: state
-    entity_id: select.myenergi_zappi_24876502_charge_mode
-    state: Eco+
-  action:
-  - service: notify.all_devices
-    data:
-      message: Zappi mode is "Eco+" but status is "Paused" and "Waiting for EV", trying
-        to wake up car
-  - service: select.select_option
-    data:
-      option: Stopped
-    target:
-      entity_id: select.myenergi_zappi_24876502_charge_mode
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: 20
-      milliseconds: 0
-  - service: select.select_option
-    data:
-      option: Eco+
-    target:
-      entity_id: select.myenergi_zappi_24876502_charge_mode
-  mode: single
 - id: '1702199064765'
   alias: Reduced current set for overnight charge
   description: ''
@@ -391,43 +254,6 @@
     path: BottlecapDave/octopus_energy_octoplus_join_saving_session.yml.yaml
     input:
       saving_session_event_entity: event.octopus_energy_a_281ee75f_octoplus_saving_session_events
-- id: '1707845246436'
-  alias: Boost Zappi to Car Charge Limit (in Eco+ Mode)
-  description: Boost Zappi to Car Charge Limit (in Eco+ Mode)
-  trigger:
-  - platform: template
-    id: 'on'
-    value_template: "{% set ns=namespace() %} //Enable this template for UK low carbon
-      charging, or optimal price if you're on Agile Octopus tariff\n{% set ns.flag=false
-      %} //Install the (tricky) prereqs from https://community.home-assistant.io/t/octopus-agile-display-tariff-in-graphs-tables-best-import-export-periods-all-done-using-node-red-and-jsonata/518762\n{%
-      for event in state_attr('sensor.octopus_agile_sequence_table_2', 'import_array')%}\n
-      \ {% set ontime=(as_timestamp(event.from)|int-as_timestamp(now())|int) %}\n
-      \ {% set ns.flag = ns.flag or ( 0 < ontime < 120) %}\n{% endfor %}\n{{ns.flag}}
-      \n"
-    enabled: false
-  - platform: state
-    entity_id:
-    - input_boolean.boost_zappi
-    from: 'off'
-    to: 'on'
-  condition: []
-  action:
-  - service: select.select_option
-    metadata: {}
-    data:
-      option: Eco+
-    target:
-      entity_id: select.myenergi_zappi_xxxxxxx_charge_mode
-  - delay: 00:01:00
-  - service: myenergi.myenergi_boost
-    data:
-      amount: "\n{{ \n    [\n    ( ( ( states ('number.charge_limit') | float ) -
-        ( states('sensor.battery') | float ) ) \n    * 0.75 ) \n    | round(0)\n    ,
-        1.0 ] | max\n    + states('sensor.myenergi_zappi_xxxxxxx_charge_added_session')
-        | float(0)\n}}  "
-    target:
-      device_id: 40061624ae5856a2c3442b6b1c4ab5
-  mode: single
 - id: '1708858213473'
   alias: Zappi protect battery
   description: Stop boost if battery discharging
@@ -559,48 +385,6 @@
       data:
         message: Zappi successfully stopped boost
   mode: single
-- id: '1709544236613'
-  alias: Set zappi to stopped at sunrise
-  description: ''
-  triggers:
-  - event: sunrise
-    offset: 0
-    trigger: sun
-  conditions: []
-  actions:
-  - device_id: aa6bc65a79469914908d8112506036e5
-    domain: select
-    entity_id: 4c65227b1c8871981a23aed1af73607e
-    type: select_option
-    option: Stopped
-  mode: single
-- id: '1709544286843'
-  alias: Set zappi to eco+ at sunset
-  description: ''
-  triggers:
-  - event: sunset
-    offset: 0
-    trigger: sun
-  conditions: []
-  actions:
-  - device_id: aa6bc65a79469914908d8112506036e5
-    domain: select
-    entity_id: 4c65227b1c8871981a23aed1af73607e
-    type: select_option
-    option: Eco+
-  mode: single
-- id: '1711655697777'
-  alias: 'Z test start boost '
-  description: ''
-  trigger: []
-  condition: []
-  action:
-  - service: myenergi.myenergi_boost
-    target:
-      device_id: aa6bc65a79469914908d8112506036e5
-    data:
-      amount: 20
-  mode: single
 - id: '1717495858589'
   alias: Zappi in fault state
   description: ''
@@ -627,14 +411,14 @@
     - sensor.car_charging_now
     to: 'on'
     for:
-      minutes: 1
+      minutes: 2
     trigger: state
   conditions:
   - condition: state
     entity_id: binary_sensor.battery_discharging
     state: 'on'
     for:
-      minutes: 1
+      minutes: 2
   actions:
   - action: notify.mobile_app_iphone
     data:
@@ -696,34 +480,6 @@
       message: PVOPT finished discharging, setting zappi to eco+
     action: notify.all_devices
   mode: single
-- id: '1728547642042'
-  alias: Check pvopt is working
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.pvopt_status
-    to: unavailable
-    for:
-      hours: 0
-      minutes: 10
-      seconds: 0
-  condition: []
-  action:
-  - service: notify.all_devices
-    metadata: {}
-    data:
-      message: pvopt_status is not available - restart app daemon ??
-  mode: single
-- id: '1733583839922'
-  alias: Bedroom 4 random
-  description: ''
-  use_blueprint:
-    path: sOckhamSter/randomised_light_at_night.yaml
-    input:
-      target_light: switch.bedroom_4_lamp
-      lights_out_time: '22:35:00'
-      away_lighting_switch_entity: switch.north_external_socket_socket_1
 - id: '1735029443224'
   alias: Corrupt database alert
   description: ''
@@ -777,55 +533,6 @@
       sensor_entity: sensor.m5atom_dev_error_code
       is_ios: true
       notify_device: 8ce10e80229e57f8be8e0c1354c0321e
-- id: '1736367634550'
-  alias: pv_opt error monitor
-  description: Alert when pv_opt may have issues
-  triggers:
-  - trigger: state
-    alias: pv_opt status has not changed for 20 minutes
-    entity_id: sensor.pvopt_status
-    attribute: last_updated
-    for:
-      minutes: 20
-    variables:
-      alert_text: pv opt stalled? last_updated=' {{ state_attr('sensor.pvopt_status','last_updated')|as_timestamp|timestamp_custom('%a
-        %H:%M') }}', unchanged for 20 mins; Status='{{ states('sensor.pvopt_status')
-        }}'
-  - trigger: template
-    value_template: '{% if not is_state(''sensor.pvopt_status'', ''Idle'') %}true{%
-      endif %}'
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
-    variables:
-      alert_text: pv_opt should be idle but is not, last_updated=' {{ state_attr('sensor.pv_opt_status','last_updated')|as_timestamp|timestamp_custom('%a
-        %H:%M') }}', unchanged for 5 mins; Status='{{ states('sensor.pv_opt_status')
-        }}'
-  conditions: []
-  actions:
-  - action: notify.all_devices
-    alias: Send alert message
-    data:
-      title: pv_opt status issue
-      message: '{{now().strftime(''%-d %b %H:%M'')}} ISSUE:
-
-        {{ alert_text }}
-
-        '
-      data:
-        visibility: public
-        persistent: true
-        push:
-          sound:
-            name: default
-            critical: 1
-            volume: 0.8
-        sticky: true
-        color: red
-  trace:
-    stored_traces: 20
-  mode: single
 - id: '1736498047005'
   alias: Notify - Auto Backup
   description: ''
@@ -1044,6 +751,7 @@
           climate: '{{ climate }}'
           temperature: '{{ boost_temp | float}}'
       - action: input_boolean.turn_on
+        enabled: false
         target:
           entity_id: input_boolean.hot_water_boost
     - conditions:
@@ -1057,6 +765,7 @@
           climate: '{{ climate }}'
           temperature: '{{ day_temp | float}}'
       - action: input_boolean.turn_off
+        enabled: false
         target:
           entity_id: input_boolean.hot_water_boost
   variables:
@@ -1076,54 +785,6 @@
     day_temp: '{{ [( default_boost - setback ),  min_temp ] | max | float}}
 
       '
-  mode: single
-- id: '1739806428807'
-  alias: Battery warmer
-  description: ''
-  triggers:
-  - type: temperature
-    device_id: 156b84f69254ed2de9619c5d316c712f
-    entity_id: 01ac888aae7da551acf9489bc7925d49
-    domain: sensor
-    trigger: device
-    id: stop_battery_heat
-    above: 12
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
-  - type: temperature
-    device_id: 156b84f69254ed2de9619c5d316c712f
-    entity_id: 01ac888aae7da551acf9489bc7925d49
-    domain: sensor
-    trigger: device
-    id: start_battery_heat
-    below: 11
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
-  conditions: []
-  actions:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id:
-        - start_battery_heat
-      sequence:
-      - type: turn_on
-        device_id: 8dcb28e773d84717dc35c2e3835cffb0
-        entity_id: 475cf243220aa56797beaf5b00e03d66
-        domain: switch
-    - conditions:
-      - condition: trigger
-        id:
-        - stop_battery_heat
-      sequence:
-      - type: turn_off
-        device_id: 8dcb28e773d84717dc35c2e3835cffb0
-        entity_id: 475cf243220aa56797beaf5b00e03d66
-        domain: switch
   mode: single
 - id: '1743758604914'
   alias: Mower Locked Alert
@@ -1165,7 +826,7 @@
   triggers:
   - trigger: state
     entity_id:
-    - sensor.my_volkswagen_charging_state
+    - sensor.id_3_charging_state
     to: error
     for:
       hours: 0
@@ -1180,8 +841,8 @@
     to: Fault
     for:
       hours: 0
-      minutes: 5
-      seconds: 0
+      minutes: 0
+      seconds: 50
     variables:
       message: Zappi plug status is {{ states('sensor.myenergi_zappi_24876502_plug_status')
         }}
@@ -1247,17 +908,6 @@
         value_template: '{{ now() - states(''sensor.uptime'')|as_datetime > timedelta(
           minutes = 5) }}'
         enabled: true
-- id: '1763631223156'
-  alias: Calibrate Landing external temperature
-  description: ''
-  use_blueprint:
-    path: kvanbiesen/calib_trv_external_temp.yaml
-    input:
-      external_temp: sensor.main_bedroom_temperature
-      climate_names:
-      - climate.landing
-      offset_factor: -1
-      time_delay: 1
 - id: '1765368696331'
   alias: Calibrate thermostat on change
   description: ''
@@ -1310,12 +960,15 @@
       thermostat: '{{ thermostat }}'
       calibration: '{{ calibration }}'
       sensor_extern: '{{ sensor_extern }}'
-  mode: single
+  mode: queued
   trace:
     stored_traces: 20
 - id: '1765376622934'
   alias: Calibrate thermostat periodic
-  description: ''
+  description: "- wait_template: |\n    {{ not states('climate.living_room_thermostat')
+    in ['unavailable','unknown'] }}\n- wait_template: |\n    {{ not states('number.living_room_thermostat_local_temperature_calibration')
+    in ['unavailable','unknown'] }}\n- wait_template: |\n    {{ not states('sensor.living_room_external_temperature')
+    in ['unavailable','unknown'] }}"
   triggers:
   - trigger: time_pattern
     minutes: /2
@@ -1345,7 +998,7 @@
           thermostat: '{{ repeat.item.thermostat }}'
           calibration: '{{ repeat.item.calibration }}'
           sensor_extern: '{{ repeat.item.sensor_extern }}'
-  mode: single
+  mode: queued
 - id: '1765617311695'
   alias: Cheap rate heating boost
   description: ''
@@ -1392,6 +1045,7 @@
       seconds: 2
   conditions:
   - condition: template
+    enabled: false
     value_template: '{{ (not holiday_mode) and (states(''sensor.m5atom_dev_outdoor_temperature'')
       | float < 10) }}
 
@@ -1410,12 +1064,13 @@
           climate: downstairs
           temperature: '{{ downstairs_boost | float}}'
       - action: script.set_climate
-        enabled: true
+        enabled: false
         metadata: {}
         data:
           climate: landing_thermostat
-          temperature: '{{ upstairs_boost | float}}'
+          temperature: '{{ upstairs_comfort | float}}'
       - action: input_boolean.turn_on
+        enabled: false
         target:
           entity_id: input_boolean.heating_boost
     - conditions:
@@ -1430,12 +1085,13 @@
           climate: downstairs
           temperature: '{{ downstairs_comfort | float}}'
       - action: script.set_climate
-        enabled: true
+        enabled: false
         metadata: {}
         data:
           climate: landing_thermostat
           temperature: '{{ upstairs_comfort | float}}'
       - action: input_boolean.turn_off
+        enabled: false
         target:
           entity_id: input_boolean.heating_boost
   mode: single
@@ -1448,3 +1104,242 @@
     upstairs_comfort: '{{ states(''input_number.landing_thermostat_comfort'') | float
       }}'
     holiday_mode: '{{ states(''binary_sensor.holiday_mode'') | bool }}'
+- id: '1765719759470'
+  alias: Octopus next rate change alert
+  description: 'Alert when the time of the octupus next rate changes.
+
+    Used when grabbing a quick boost during the day
+
+    '
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.octopus_energy_electricity_22l3527084_1580001758865_next_rate
+    attribute: start
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+  conditions: []
+  actions:
+  - action: notify.all_devices
+    data:
+      message: 'Next rate start has changed to: {{ state_attr(''sensor.octopus_energy_electricity_22l3527084_1580001758865_next_rate'',
+        ''start'') }}'
+  mode: single
+- id: '1765731261389'
+  alias: Cheap rate daytime heating boost
+  description: ''
+  triggers:
+  - trigger: state
+    id: Boost On
+    entity_id:
+    - binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  - trigger: state
+    id: Boost Off
+    entity_id:
+    - binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  - trigger: state
+    id: Boost On
+    entity_id:
+    - input_boolean.heating_boost
+    to:
+    - 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  - trigger: state
+    id: Boost Off
+    entity_id:
+    - input_boolean.heating_boost
+    to:
+    - 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  conditions:
+  - condition: template
+    enabled: false
+    value_template: '{{ (not holiday_mode) and (states(''sensor.m5atom_dev_outdoor_temperature'')
+      | float < 10) }}
+
+      '
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - Boost On
+      sequence:
+      - action: script.set_climate
+        enabled: true
+        metadata: {}
+        data:
+          climate: downstairs
+          temperature: '{{ downstairs_boost | float}}'
+      - action: script.set_climate
+        enabled: false
+        metadata: {}
+        data:
+          climate: landing_thermostat
+          temperature: '{{ upstairs_comfort | float}}'
+      - action: input_boolean.turn_on
+        enabled: false
+        target:
+          entity_id: input_boolean.heating_boost
+    - conditions:
+      - condition: trigger
+        id:
+        - Boost Off
+      sequence:
+      - action: script.set_climate
+        enabled: true
+        metadata: {}
+        data:
+          climate: downstairs
+          temperature: '{{ downstairs_comfort | float}}'
+      - action: script.set_climate
+        enabled: false
+        metadata: {}
+        data:
+          climate: landing_thermostat
+          temperature: '{{ upstairs_comfort | float}}'
+      - action: input_boolean.turn_off
+        enabled: false
+        target:
+          entity_id: input_boolean.heating_boost
+  mode: single
+  variables:
+    climate: m5atom_dev_hot_water
+    downstairs_boost: '{{ states(''input_number.downstairs_boost'') | float }}'
+    downstairs_comfort: '{{ states(''input_number.downstairs_comfort'') | float }}'
+    upstairs_boost: '{{ states(''input_number.landing_thermostat_boost'') | float
+      }}'
+    upstairs_comfort: '{{ states(''input_number.landing_thermostat_comfort'') | float
+      }}'
+    holiday_mode: '{{ states(''binary_sensor.holiday_mode'') | bool }}'
+- id: '1765820803979'
+  alias: Adjust WL Offset
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.upstairs_heating_active
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+    id: Boost On
+    to:
+    - 'on'
+  - trigger: state
+    entity_id:
+    - binary_sensor.upstairs_heating_active
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+    id: Boost Off
+    to:
+    - 'off'
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - Boost On
+      sequence:
+      - action: notify.all_devices
+        data:
+          message: Setting WL Offset to 5
+        enabled: false
+      - action: number.set_value
+        target:
+          entity_id: number.m5atom_dev_water_law_offset
+        data:
+          value: 4
+    - conditions:
+      - condition: trigger
+        id:
+        - Boost Off
+      sequence:
+      - action: notify.all_devices
+        data:
+          message: Setting WL Offset to 0
+        enabled: false
+      - action: number.set_value
+        target:
+          entity_id: number.m5atom_dev_water_law_offset
+        data:
+          value: 0
+  mode: queued
+- id: '1767888701370'
+  alias: Check Hot water for Ann
+  description: Check whether hot water is hot enough for a morning shower!
+  triggers:
+  - trigger: time
+    at: 08:10:00
+  conditions:
+  - condition: numeric_state
+    entity_id: climate.m5atom_dev_hot_water
+    attribute: current_temperature
+    below: 47
+  actions:
+  - data:
+      message: Hot water temperature is only {{ state_attr("climate.m5atom_dev_hot_water","current_temperature")
+        }}°C
+    action: notify.all_devices
+  mode: single
+- id: '1770386039832'
+  alias: 'Alert: Kitchen Wall Moisture Increase'
+  description: Pings phone if wall moisture rises significantly above house baseline
+  triggers:
+  - entity_id: sensor.lean_to_roof_humidity
+    above: 15
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
+    trigger: numeric_state
+  conditions: []
+  actions:
+  - data:
+      title: ⚠️ Roof Leak Warning
+      message: Wall moisture is {{ states('sensor.lean_to_roof_humidity') }}% - significantly
+        higher than house average.
+      data:
+        priority: high
+        clickAction: /lovelace/roof-stats
+    action: notify.mobile_app_iphone
+  mode: single
+- id: '1770386453824'
+  alias: 'Status: Wall Officially Dry'
+  description: Notify when wall moisture hits stable dry levels
+  triggers:
+  - entity_id: sensor.kitchen_roof_humidity
+    below: 5
+    for:
+      hours: 24
+    trigger: numeric_state
+  actions:
+  - data:
+      title: ✅ Wall is Dry
+      message: Great news! The roof wall has stayed at {{ states('sensor.kitchen_roof_humidity')
+        }}% for 24 hours. The drying process is complete.
+    action: notify.mobile_app_iphone
+  mode: single
