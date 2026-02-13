@@ -33,3 +33,22 @@
       state_class: measurement
       # Captures the value of your forecast sensor right before the day ends
       state: "{{ states('sensor.open_meteo_day_total_precipitation') | float(0) }}"
+
+- sensor:
+    - name: Open-Meteo Wind Speed MPH
+      unit_of_measurement: mph
+      device_class: wind_speed
+      state_class: measurement
+      # Math: km/h / 1.609 = mph
+      state: "{{ (state_attr('weather.home', 'wind_speed') | float(0) / 1.609) | round(1) }}"
+
+    - name: Open-Meteo Wind Gust MPH
+      unit_of_measurement: mph
+      device_class: wind_speed
+      state_class: measurement
+      state: "{{ (state_attr('weather.home', 'wind_gust_speed') | float(0) / 1.609) | round(1) }}"
+
+    - name: Open-Meteo Wind Direction
+      unit_of_measurement: °
+      state_class: measurement
+      state: "{{ state_attr('weather.home', 'wind_bearing') }}"
