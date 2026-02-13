@@ -1343,3 +1343,28 @@
         }}% for 24 hours. The drying process is complete.
     action: notify.mobile_app_iphone
   mode: single
+- id: '1770973335482'
+  alias: Bins out tonight
+  description: ''
+  triggers:
+  - at: '18:00:00'
+    trigger: time
+  conditions:
+  - condition: template
+    value_template: '{{ ''tomorrow'' in states(''sensor.next_bin_summary'') | lower
+      }}'
+  actions:
+  - data:
+      title: "\U0001F69B Bin Reminder"
+      message: It's {{ states('sensor.next_bin_summary') }}. Don't forget to put them
+        out!
+      data:
+    action: notify.notify
+  - data:
+      title: "\U0001F69B Bin Reminder"
+      message: It's {{ states('sensor.next_bin_summary') }}. Don't forget to put them
+        out!
+      data:
+        push:
+          sound: default
+    action: notify.mobile_app_iphone

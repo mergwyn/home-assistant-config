@@ -17,37 +17,73 @@
       - name: Next Bin Collection
         unique_id: rievaulx_next_bin
         icon: mdi:trash-can
-        # This part sets the state to the number of days
+        # State now shows "Tomorrow", "In 2 days", etc.
         state: >
-          {% set bin_sensors = [
-            'sensor.rievaulx_house_household_waste_days_until_collection',
-            'sensor.rievaulx_house_recycling_days_until_collection',
-            'sensor.rievaulx_house_garden_waste_days_until_collection'
-          ] %}
-          {% set days_list = bin_sensors | map('states') | map('int', default=99) | list %}
-          {{ days_list | min }}
+          {% set bin_map = {
+            'sensor.rievaulx_house_household_waste_days_until_collection': 'sensor.rievaulx_house_household_waste_next_collection_human_readable',
+            'sensor.rievaulx_house_recycling_days_until_collection': 'sensor.rievaulx_house_recycling_next_collection_human_readable',
+            'sensor.rievaulx_house_garden_waste_days_until_collection': 'sensor.rievaulx_house_garden_waste_next_collection_human_readable'
+          } %}
+          {# Still use the 'days' sensors to find the minimum number #}
+          {% set days_list = bin_map.keys() | map('states') | map('int', default=99) | list %}
+          {% set next_days_val = days_list | min | string %}
+
+          {# Find the first human-readable sensor that matches that minimum day count #}
+          {% set ns = namespace(readable='') %}
+          {% for days_entity, human_entity in bin_map.items() %}
+            {% if states(days_entity) == next_days_val %}
+              {% set ns.readable = states(human_entity) %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.readable }}
         attributes:
-          # This part lists the bin types
           bin_types: >
-            {% set bin_sensors = [
-              'sensor.rievaulx_house_household_waste_days_until_collection',
-              'sensor.rievaulx_house_recycling_days_until_collection',
-              'sensor.rievaulx_house_garden_waste_days_until_collection'
-            ] %}
             {% set bin_map = {
-              'sensor.rievaulx_house_household_waste_days_until_collection': 'Household',
-              'sensor.rievaulx_house_recycling_days_until_collection': 'Recycling',
+              'sensor.rievaulx_house_household_waste_days_until_collection': 'Black',
+              'sensor.rievaulx_house_recycling_days_until_collection': 'Blue',
               'sensor.rievaulx_house_garden_waste_days_until_collection': 'Green'
             } %}
-            {% set next_days = states('sensor.next_bin_collection') %}
+            {% set days_list = bin_map.keys() | map('states') | map('int', default=99) | list %}
+            {% set next_days_val = days_list | min | string %}
             {% set ns = namespace(types=[]) %}
             {% for entity, label in bin_map.items() %}
-              {% if states(entity) == next_days %}
+              {% if states(entity) == next_days_val %}
                 {% set ns.types = ns.types + [label] %}
               {% endif %}
             {% endfor %}
             {{ ns.types | join(', ') }}
-          # This adds the actual date as an attribute
+          # Keeping the exact date just in case you need it for cards
           collection_date: >
-            {% set days = states('sensor.next_bin_collection') | int(0) %}
+            {% set days_list = [
+              states('sensor.rievaulx_house_household_waste_days_until_collection')|int(99),
+              states('sensor.rievaulx_house_recycling_days_until_collection')|int(99),
+              states('sensor.rievaulx_house_garden_waste_days_until_collection')|int(99)
+            ] %}
+            {% set days = days_list | min %}
             {{ (now() + timedelta(days=days)).strftime('%d/%m/%Y') }}
+
+      - name: Next Bin Summary
+        unique_id: rievaulx_next_bin_summary
+        icon: mdi:dump-truck
+        state: >
+          {% set bin_map = {
+            'sensor.rievaulx_house_household_waste_days_until_collection': ['Black', 'sensor.rievaulx_house_household_waste_next_collection_human_readable'],
+            'sensor.rievaulx_house_recycling_days_until_collection': ['Blue', 'sensor.rievaulx_house_recycling_next_collection_human_readable'],
+            'sensor.rievaulx_house_garden_waste_days_until_collection': ['Green', 'sensor.rievaulx_house_garden_waste_next_collection_human_readable']
+          } %}
+
+          {# 1. Find the minimum days #}
+          {% set days_list = bin_map.keys() | map('states') | map('int', default=99) | list %}
+          {% set min_days = days_list | min | string %}
+
+          {# 2. Collect types and get the human-readable string #}
+          {% set ns = namespace(types=[], human='') %}
+          {% for days_entity, data in bin_map.items() %}
+            {% if states(days_entity) == min_days %}
+              {% set ns.types = ns.types + [data[0]] %}
+              {% set ns.human = states(data[1]) %}
+            {% endif %}
+          {% endfor %}
+
+          {# 3. Combine into one string #}
+          {{ ns.human | capitalize }}: {{ ns.types | join(', ') }}
