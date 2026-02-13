@@ -1,7 +1,7 @@
 ---
 - trigger:
     - platform: time_pattern
-      minutes: "/30"
+      minutes: /30
     - platform: homeassistant
       event: start
   action:
@@ -13,9 +13,23 @@
       # This variable holds the result of the weather service call
       response_variable: daily_data
   sensor:
-    - name: "Open Meteo Day Total Precipitation"
+    - name: Open Meteo Day Total Precipitation
       unique_id: open_meteo_daily_rain_total
-      unit_of_measurement: "mm"
+      unit_of_measurement: mm
       device_class: precipitation
+      state_class: total_increasing
       # [0] targets 'today'. Use | float(0) to ensure the chart gets a number
       state: "{{ daily_data['weather.home'].forecast[0].precipitation | float(0) }}"
+
+
+- trigger:
+    - platform: time
+      at: "23:59:59"
+  sensor:
+    - name: Yesterday Rainfall
+      unique_id: yesterday_rainfall
+      unit_of_measurement: mm
+      device_class: precipitation
+      state_class: measurement
+      # Captures the value of your forecast sensor right before the day ends
+      state: "{{ states('sensor.open_meteo_day_total_precipitation') | float(0) }}"

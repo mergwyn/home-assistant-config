@@ -6,6 +6,6 @@
 
 - platform: derivative
   name: Kitchen Roof Humidity Change Rate
-  source: sensor.kitchen_roof_abolute_humidity
+  source: sensor.kitchen_roof_absolute_humidity
   unit_time: h # Measures change in grams per hour
   time_window: 01:00:00 # Smooths out noise over 1 hour
