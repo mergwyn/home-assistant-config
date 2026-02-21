@@ -1,11 +1,23 @@
+---
 - sensor:
-  - name: Wall Moisture Delta
-    unique_id: template_sensor_wall_moisture_delta
-    state_class: measurement
-    device_class: humidity
-    unit_of_measurement: '%'
-    state: >
-      {{ (states('sensor.kitchen_roof_humidity') | float(0)) - (states('sensor.hall_external_humidity') | float(0)) }}
+    - name: Wall Moisture Delta
+      unique_id: template_sensor_wall_moisture_delta
+      state_class: measurement
+      device_class: humidity
+      unit_of_measurement: '%'
+      availability: >
+        {{
+          states('sensor.kitchen_roof_humidity') not in ['unknown','unavailable']
+          and
+          states('sensor.hall_external_humidity') not in ['unknown','unavailable']
+        }}
+      state: >
+        {{
+          (states('sensor.kitchen_roof_humidity') | float)
+          -
+          (states('sensor.hall_external_humidity') | float)
+        }}
+
 
   - name: Kitchen Roof Absolute Humidity
     unique_id: kitchen_roof_absolute_humidity
