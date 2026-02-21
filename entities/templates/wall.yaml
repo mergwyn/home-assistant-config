@@ -1,4 +1,6 @@
----
+# ---
+# templates:
+#
 - sensor:
     - name: Wall Moisture Delta
       unique_id: template_sensor_wall_moisture_delta
@@ -18,33 +20,32 @@
           (states('sensor.hall_external_humidity') | float)
         }}
 
+    - name: Kitchen Roof Absolute Humidity
+      unique_id: kitchen_roof_absolute_humidity
+      unit_of_measurement: g/m³
+      state_class: measurement
+      state: >
+        {% set T = states('sensor.kitchen_roof_temperature') | float(default=0) %}
+        {% set RH = states('sensor.kitchen_roof_humidity') | float(default=0) %}
+        {% set abs_hum = (6.112 * e**((17.67 * T) / (T + 243.5)) * RH * 2.1674) / (273.15 + T) %}
+        {{ abs_hum | round(2) }}
 
-  - name: Kitchen Roof Absolute Humidity
-    unique_id: kitchen_roof_absolute_humidity
-    unit_of_measurement: g/m³
-    state_class: measurement
-    state: >
-      {% set T = states('sensor.kitchen_roof_temperature') | float(default=0) %}
-      {% set RH = states('sensor.kitchen_roof_humidity') | float(default=0) %}
-      {% set abs_hum = (6.112 * e**((17.67 * T) / (T + 243.5)) * RH * 2.1674) / (273.15 + T) %}
-      {{ abs_hum | round(2) }}
-
-  - name: Kitchen Wall Drying Trend
-    unique_id: kitchen_wall_drying_trend
-    icon: >
-      {% set rate = states('sensor.kitchen_roof_humidity_change_rate') | float(0) %}
-      {% if rate < -0.1 %} mdi:water-check-outline
-      {% elif rate > 0.1 %} mdi:water-percent
-      {% else %} mdi:water-off-outline
-      {% endif %}
-    state: >
-      {% set rate = states('sensor.kitchen_roof_humidity_change_rate') | float(0) %}
-      {% if rate < -0.1 %} Drying
-      {% elif rate > 0.1 %} Moistening
-      {% else %} Stable
-      {% endif %}
-    availability: >
-      {{ is_number(states('sensor.kitchen_roof_humidity_change_rate')) }}
+    - name: Kitchen Wall Drying Trend
+      unique_id: kitchen_wall_drying_trend
+      icon: >
+        {% set rate = states('sensor.kitchen_roof_humidity_change_rate') | float(0) %}
+        {% if rate < -0.1 %} mdi:water-check-outline
+        {% elif rate > 0.1 %} mdi:water-percent
+        {% else %} mdi:water-off-outline
+        {% endif %}
+      state: >
+        {% set rate = states('sensor.kitchen_roof_humidity_change_rate') | float(0) %}
+        {% if rate < -0.1 %} Drying
+        {% elif rate > 0.1 %} Moistening
+        {% else %} Stable
+        {% endif %}
+      availability: >
+        {{ is_number(states('sensor.kitchen_roof_humidity_change_rate')) }}
 
 
 - binary_sensor:
