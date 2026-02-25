@@ -144,6 +144,11 @@ set_climate:
           entity_id: '{{ "climate." ~ climate }}
 
             '
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 1
+          milliseconds: 0
   - action: climate.turn_off
     target:
       entity_id: '{{ "climate." ~ climate }}
@@ -155,7 +160,7 @@ set_climate:
   - delay:
       hours: 0
       minutes: 0
-      seconds: 5
+      seconds: 3
       milliseconds: 0
   - action: climate.turn_on
     target:
