@@ -3,3 +3,5 @@ logger:
   default: warning
   # TODO: move to include file
   filters: !include_dir_merge_named ../log_filters
+  # logs:
+  #   custom_components.climate_group_helper: debug
