@@ -1310,7 +1310,7 @@
   description: Pings phone if wall moisture rises significantly above house baseline
   triggers:
   - entity_id: sensor.wall_moisture_delta
-    above: 15
+    above: 37
     for:
       hours: 1
       minutes: 0
@@ -1320,8 +1320,8 @@
   actions:
   - data:
       title: ⚠️ Roof Leak Warning
-      message: Wall moisture is {{ states('sensor.kitchen_roof_humidity') }}% - significantly
-        higher than house average.
+      message: Wall moisture is {{ states('sensor.kitchen_roof_humidity') }}% - {{
+        states('sensor.wall_moisture_delta') }}% higher than house average.
       data:
         priority: high
         clickAction: /lovelace/roof-stats
@@ -1358,8 +1358,7 @@
       title: "\U0001F69B Bin Reminder"
       message: It's {{ states('sensor.next_bin_summary') }}. Don't forget to put them
         out!
-      data:
-    action: notify.notify
+    action: notify.all_devices
   - data:
       title: "\U0001F69B Bin Reminder"
       message: It's {{ states('sensor.next_bin_summary') }}. Don't forget to put them
