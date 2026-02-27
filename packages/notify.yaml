@@ -9,3 +9,4 @@ notify:
     services:
       - action: mobile_app_iphone
       - action: mobile_app_anns_ipad_air_5
+      - action: mobile_app_anns_iphone_se
