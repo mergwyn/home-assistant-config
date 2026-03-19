@@ -86,4 +86,4 @@
           {% endfor %}
 
           {# 3. Combine into one string #}
-          {{ ns.human | capitalize }}: {{ ns.types | join(', ') }}
+          {{ ns.types | join(', ') }}: {{ ns.human }}
