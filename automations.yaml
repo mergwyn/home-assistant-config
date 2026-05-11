@@ -778,11 +778,15 @@
     setback: '{{ states(''input_number.dhw_setback'') | float }}'
     holiday_mode: '{{ states(''binary_sensor.holiday_mode'') | bool }}'
     boost_temp: '{%- if holiday_mode -%} {{ holiday |float }} {% elif (now().weekday()
-      == 2) %} {{ legionella | float }} {% else %} {{ default_boost | float}} {% endif
-      %}
+      == 2) %} {{ legionella | float }} {% else %}  {{ default_boost | float}} {%
+      endif %}
 
       '
-    day_temp: '{{ [( default_boost - setback ),  min_temp ] | max | float}}
+    day_temp: '{%- if holiday_mode -%} {{ holiday |float }}
+
+      {% else %} {{ [( default_boost - setback ),  min_temp ] | max | float}}
+
+      {% endif %}
 
       '
   mode: single
@@ -827,7 +831,7 @@
   - trigger: state
     entity_id:
     - sensor.id_3_charging_state
-    to: error
+    to: Error
     for:
       hours: 0
       minutes: 5
@@ -846,15 +850,6 @@
     variables:
       message: Zappi plug status is {{ states('sensor.myenergi_zappi_24876502_plug_status')
         }}
-  conditions:
-  - condition: state
-    entity_id: device_tracker.my_volkswagen_tracker
-    state: home
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
-    enabled: false
   actions:
   - action: notify.all_devices
     data:
@@ -1050,6 +1045,10 @@
       | float < 10) }}
 
       '
+  - condition: state
+    entity_id: binary_sensor.holiday_mode
+    state:
+    - 'off'
   actions:
   - choose:
     - conditions:
@@ -1097,13 +1096,16 @@
   mode: single
   variables:
     climate: m5atom_dev_hot_water
-    downstairs_boost: '{{ states(''input_number.downstairs_boost'') | float }}'
-    downstairs_comfort: '{{ states(''input_number.downstairs_comfort'') | float }}'
-    upstairs_boost: '{{ states(''input_number.landing_thermostat_boost'') | float
-      }}'
-    upstairs_comfort: '{{ states(''input_number.landing_thermostat_comfort'') | float
-      }}'
+    holiday_temp: 10
     holiday_mode: '{{ states(''binary_sensor.holiday_mode'') | bool }}'
+    downstairs_boost: '{{ holiday_temp if holiday_mode else states(''input_number.downstairs_boost'')
+      | float }}'
+    downstairs_comfort: '{{ holiday_temp if holiday_mode else states(''input_number.downstairs_comfort'')
+      | float }}'
+    upstairs_boost: '{{ holiday_temp if holiday_mode else states(''input_number.landing_thermostat_boost'')
+      | float }}'
+    upstairs_comfort: '{{ holiday_temp if holiday_mode else states(''input_number.landing_thermostat_comfort'')
+      | float }}'
 - id: '1765719759470'
   alias: Octopus next rate change alert
   description: 'Alert when the time of the octupus next rate changes.
@@ -1402,3 +1404,41 @@
         data:
           push:
             sound: US-EN-Morgan-Freeman-Severe-Weather-Update.wav
+- id: '1778396224039'
+  alias: IOG Boost on EV Plug-In
+  description: Sets IOG charge target based on delta between current and target SoC
+  triggers:
+  - entity_id:
+    - sensor.myenergi_zappi_24876502_plug_status
+    to:
+    - EV Connected
+    trigger: state
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 20
+  conditions:
+  - condition: template
+    value_template: "{{ states('sensor.my_id3_battery_level') | float(0) <\n   states('number.my_id3_battery_target_charge_level')
+      | float(80) }}\n"
+  actions:
+  - variables:
+      soc_current: '{{ states(''sensor.my_id3_battery_level'') | float(0) }}'
+      soc_target: '{{ states(''number.my_id3_battery_target_charge_level'') | float(80)
+        }}'
+      boost_value: '{{ [[soc_target - soc_current, 10] | max, 100] | min | round(0)
+        | int }}
+
+        '
+  - target:
+      entity_id: number.octopus_energy_00000000_0009_4000_8020_000000085d8c_intelligent_charge_target
+    data:
+      value: '{{ boost_value }}'
+    action: number.set_value
+  - data:
+      title: IOG Boost Set
+      message: 'SoC: {{ soc_current }}% → Target: {{ soc_target }}%. Boost set to
+        {{ boost_value }}%.
+
+        '
+    action: notify.mobile_app_iphone
