@@ -147,7 +147,7 @@ set_climate:
       - delay:
           hours: 0
           minutes: 0
-          seconds: 1
+          seconds: 5
           milliseconds: 0
   - action: climate.turn_off
     target:
@@ -160,7 +160,7 @@ set_climate:
   - delay:
       hours: 0
       minutes: 0
-      seconds: 3
+      seconds: 5
       milliseconds: 0
   - action: climate.turn_on
     target:
