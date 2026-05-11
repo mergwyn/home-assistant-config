@@ -1,0 +1,159 @@
+---
+# packages/heating_helpers.yaml
+
+input_number:
+  downstairs_boost:
+    name: Downstairs Boost Temperature
+    min: 5
+    max: 30
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:thermometer-plus
+
+  downstairs_comfort:
+    name: Downstairs Comfort Temperature
+    min: 5
+    max: 30
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+
+  downstairs_eco:
+    name: Downstairs Eco Temperature
+    min: 5
+    max: 30
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+
+  landing_thermostat_boost:
+    name: Upstairs Boost Temperature
+    min: 5
+    max: 30
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:thermometer-plus
+
+  landing_thermostat_comfort:
+    name: Upstairs Comfort Temperature
+    min: 5
+    max: 30
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+
+  landing_thermostat_eco:
+    name: Upstairs Eco Temperature
+    min: 5
+    max: 30
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+
+automation:
+  - alias: "Initialise Heating Helper Defaults"
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - alias: Downstairs Boost
+        if:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: input_number.downstairs_boost
+                state: "unknown"
+              - condition: state
+                entity_id: input_number.downstairs_boost
+                state: "unavailable"
+        then:
+          - service: input_number.set_value
+            target:
+              entity_id: input_number.downstairs_boost
+            data:
+              value: 22.5
+
+      - alias: Downstairs Comfort
+        if:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: input_number.downstairs_comfort
+                state: "unknown"
+              - condition: state
+                entity_id: input_number.downstairs_comfort
+                state: "unavailable"
+        then:
+          - service: input_number.set_value
+            target:
+              entity_id: input_number.downstairs_comfort
+            data:
+              value: 21
+
+      - alias: Downstairs Eco
+        if:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: input_number.downstairs_eco
+                state: "unknown"
+              - condition: state
+                entity_id: input_number.downstairs_eco
+                state: "unavailable"
+        then:
+          - service: input_number.set_value
+            target:
+              entity_id: input_number.downstairs_eco
+            data:
+              value: 19
+
+      - alias: Upstairs Boost
+        if:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: input_number.landing_thermostat_boost
+                state: "unknown"
+              - condition: state
+                entity_id: input_number.landing_thermostat_boost
+                state: "unavailable"
+        then:
+          - service: input_number.set_value
+            target:
+              entity_id: input_number.landing_thermostat_boost
+            data:
+              value: 20.5
+
+      - alias: Upstairs Comfort
+        if:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: input_number.landing_thermostat_comfort
+                state: "unknown"
+              - condition: state
+                entity_id: input_number.landing_thermostat_comfort
+                state: "unavailable"
+        then:
+          - service: input_number.set_value
+            target:
+              entity_id: input_number.landing_thermostat_comfort
+            data:
+              value: 19
+
+      - alias: Upstairs Eco
+        if:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: input_number.landing_thermostat_eco
+                state: "unknown"
+              - condition: state
+                entity_id: input_number.landing_thermostat_eco
+                state: "unavailable"
+        then:
+          - service: input_number.set_value
+            target:
+              entity_id: input_number.landing_thermostat_eco
+            data:
+              value: 17.5
