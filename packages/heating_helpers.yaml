@@ -4,7 +4,7 @@
 input_number:
   downstairs_boost:
     name: Downstairs Boost Temperature
-    min: 5
+    min: 7
     max: 30
     step: 0.5
     unit_of_measurement: °C
@@ -12,7 +12,7 @@ input_number:
 
   downstairs_comfort:
     name: Downstairs Comfort Temperature
-    min: 5
+    min: 7
     max: 30
     step: 0.5
     unit_of_measurement: °C
@@ -20,15 +20,15 @@ input_number:
 
   downstairs_eco:
     name: Downstairs Eco Temperature
-    min: 5
+    min: 7
     max: 30
     step: 0.5
     unit_of_measurement: °C
-    icon: mdi:thermometer
+    icon: mdi:leaf
 
   landing_thermostat_boost:
     name: Upstairs Boost Temperature
-    min: 5
+    min: 7
     max: 30
     step: 0.5
     unit_of_measurement: °C
@@ -36,7 +36,7 @@ input_number:
 
   landing_thermostat_comfort:
     name: Upstairs Comfort Temperature
-    min: 5
+    min: 7
     max: 30
     step: 0.5
     unit_of_measurement: °C
@@ -44,11 +44,11 @@ input_number:
 
   landing_thermostat_eco:
     name: Upstairs Eco Temperature
-    min: 5
+    min: 7
     max: 30
     step: 0.5
     unit_of_measurement: °C
-    icon: mdi:thermometer
+    icon: mdi:leaf
 
 automation:
   - alias: "Initialise Heating Helper Defaults"
