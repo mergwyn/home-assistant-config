@@ -1,0 +1,92 @@
+---
+#  Supporting wall moisture measurement
+#
+sensors:
+  - platform: statistics
+    name: Kitchen Roof Humidity Stats
+    entity_id: sensor.kitchen_roof_soil_moisture
+    state_characteristic: mean
+    sampling_size: 20
+
+  - platform: derivative
+    name: Kitchen Roof Humidity Change Rate
+    source: sensor.kitchen_roof_absolute_humidity
+    unit_time: h # Measures change in grams per hour
+    time_window: 01:00:00 # Smooths out noise over 1 hour
+
+templates:
+  - sensor:
+      - name: Wall Moisture Delta
+        unique_id: template_sensor_wall_moisture_delta
+        state_class: measurement
+        device_class: humidity
+        unit_of_measurement: "%"
+        availability: >
+          {{
+            states('sensor.kitchen_roof_soil_moisture') not in ['unknown','unavailable']
+            and
+            states('sensor.hall_external_humidity') not in ['unknown','unavailable']
+          }}
+        state: >
+          {{
+            (states('sensor.kitchen_roof_soil_moisture') | float | round(2))
+            -
+            (states('sensor.hall_external_humidity') | float)
+          }}
+
+      - name: Kitchen Roof Absolute Humidity
+        unique_id: kitchen_roof_absolute_humidity
+        unit_of_measurement: g/m³
+        state_class: measurement
+        state: >
+          {% set T = states('sensor.kitchen_roof_temperature') | float(default=0) %}
+          {% set RH = states('sensor.kitchen_roof_soil_moisture') | float(default=0) %}
+          {% set abs_hum = (6.112 * e**((17.67 * T) / (T + 243.5)) * RH * 2.1674) / (273.15 + T) %}
+          {{ abs_hum | round(2) }}
+
+      - name: Kitchen Wall Drying Trend
+        unique_id: kitchen_wall_drying_trend
+        icon: >
+          {% set rate = states('sensor.kitchen_roof_humidity_change_rate') | float(0) %}
+          {% if rate < -0.1 %} mdi:water-check-outline
+          {% elif rate > 0.1 %} mdi:water-percent
+          {% else %} mdi:water-off-outline
+          {% endif %}
+        state: >
+          {% set rate = states('sensor.kitchen_roof_humidity_change_rate') | float(0) %}
+          {% if rate < -0.1 %} Drying
+          {% elif rate > 0.1 %} Moistening
+          {% else %} Stable
+          {% endif %}
+        availability: >
+          {{ is_number(states('sensor.kitchen_roof_humidity_change_rate')) }}
+
+  - binary_sensor:
+      - name: Wall Drying Status
+        unique_id: template_sensor_wall_drying_status
+        device_class: moisture
+        state: >
+          {% set sensor = states('sensor.kitchen_roof_humidity_stats') | float %}
+          {# Compare current value with mean over last 20 samples #}
+          {{ (states('sensor.kitchen_roof_soil_moisture') | float) < sensor }}
+        availability: >
+          {# Only calculate if both sensors are actually numeric #}
+          {{ is_number(states('sensor.kitchen_roof_humidity_stats')) and
+            is_number(states('sensor.kitchen_roof_humidity')) }}
+
+      - name: Wall Drying Status v2
+        unique_id: wall_drying_status_v2
+        device_class: moisture
+        state: >
+          {# Drying if Absolute Humidity has a negative trend #}
+          {{ states('sensor.kitchen_roof_humidity_change_rate') | float(0) < 0 }}
+        attributes:
+          trend: >
+            {% set rate = states('sensor.kitchen_roof_humidity_change_rate') | float(0) %}
+            {% if rate < -0.1 %} Drying
+            {% elif rate > 0.1 %} Moistening
+            {% else %} Stable
+            {% endif %}
+
+# TODO: add automations
+#
