@@ -1,6 +1,5 @@
 ---
 emoncms_history:
-  # TODO: move to secret
   api_key: !secret emoncms_api_key
   url: https://emoncms.org
   inputnode: 19
@@ -16,3 +15,111 @@ emoncms_history:
     - sensor.samsung_ashp_flow_temp_return
     - sensor.ashp_power_consumed_last_minute_clamp
     - sensor.ashp_total_energy_consumed_adjusted
+
+# emoncms_history:
+#   api_key: !secret emoncms_api_key
+#   url: https://emoncms.org
+#   inputnode: 19
+#   whitelist:
+#     - sensor.status_of_hot_water_circuit
+#     - sensor.status_of_heating_circuit
+#     - sensor.outside_temperature_2
+#     - sensor.cumulative_electric_use_kwh
+#     - ssensor.electric_use_in_watts
+#     - sensor.cumulative_heat_output_in_kwh
+#     - sensor.heat_output_in_watts
+#     - sensor.flow_rate
+#     - sensor.flow_temperature
+#     - sensor.return_temperature
+
+# This list of sensors provide a alias for the emoncms feed to allo
+
+# Status of Hot Water circuit
+# Outside Temperature
+# Cumulative electric use kWh
+# Electric use in watts
+# Cumulative heat output in kWh
+# Heat output in watts
+# Flow rate
+# Flow temperature
+# Return temperature
+# Status of Central Heating circuit
+
+templates:
+  - sensor:
+      - name: Status of Heating circuit
+        unique_id: template_sensor_emoncms_status_of_heating_circuit
+        state_class: measurement
+        state: >
+          {{ states('sensor.m5atom_dev_3_way_valve') | int(0) }}
+
+      - name: Status of Hot Water circuit
+        unique_id: template_sensor_emoncms_status_of_hot_water
+        state_class: measurement
+        state: >
+          {{ states('sensor.m5atom_dev_zone_heating_status') | int(0) }}
+
+      - name: Outside Temperature
+        unique_id: template_sensor_emoncms_outside_temperature
+        state_class: measurement
+        device_class: temperature
+        unit_of_measurement: °C
+        state: >
+          {{ states('sensor.m5atom_dev_outdoor_temperature') | float(0) }}
+
+      - name: Cumulative electric use kWh
+        unique_id: template_sensor_emoncms_cumulative_electric_use_kwh
+        state_class: total_increasing
+        device_class: energy
+        unit_of_measurement: kWh
+        state: >
+          {{ states('sensor.ashp_total_energy_consumed_adjusted') | float(0) }}
+
+      - name: Electric use in watts
+        unique_id: template_sensor_emoncms_electric_use_watts
+        state_class: measurement
+        device_class: power
+        unit_of_measurement: W
+        state: >
+          {{ states('sensor.ashp_power_consumed_last_minute_clamp') | float(0) }}
+
+      - name: Cumulative heat output in kWh
+        unique_id: template_sensor_emoncms_cumulative_heat_output_kwh
+        state_class: total_increasing
+        device_class: energy
+        unit_of_measurement: kWh
+        state: >
+          {{ states('sensor.m5atom_dev_total_produced_energy') | float(0) }}
+
+      - name: Heat output in watts
+        unique_id: template_sensor_emoncms_electric_heate_output_watts
+        state_class: measurement
+        device_class: power
+        unit_of_measurement: W
+        state: >
+          {{ states('sensor.m5atom_dev_last_minute_heat_generated') | float(0) }}
+
+      - name: Flow Rate
+        unique_id: template_sensor_emoncms_flow_rate
+        state_class: measurement
+        unit_of_measurement: L/min
+        device_class: volume_flow_rate
+        icon: mdi:water-circle
+        state: >
+          {{ states('sensor.m5atom_dev_flow_rate_sensor') | float(0) }}
+
+      - name: Flow temperature
+        unique_id: template_sensor_emoncms_flow_temperature
+        state_class: measurement
+        device_class: temperature
+        unit_of_measurement: °C
+        state: >
+          {{ states('sensor.m5atom_dev_flow_temp_out') | float(0) }}
+
+      - name: Return temperature
+        unique_id: template_sensor_emoncms_return_temperature
+        state_class: measurement
+        device_class: temperature
+        unit_of_measurement: °C
+        state: >
+          {{ states('sensor.m5atom_dev_flow_temp_return') | float(0) }}
