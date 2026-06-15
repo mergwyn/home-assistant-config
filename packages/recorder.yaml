@@ -12,3 +12,15 @@ recorder:
   exclude:
     entities:
       - script.calibrate_thermostat_from_external_sensor
+    entity_globs:
+      # Solax - high-frequency, low historical value
+      - sensor.solax_meter_reactive_power*
+      - sensor.solax_meter_apparent_power*
+      - sensor.solax_meter_ac_voltage
+      - sensor.solax_meter_ac_current
+      - sensor.solax_meter_voltage
+      - sensor.solax_meter_current
+      - sensor.solax_inverter_voltage
+      - sensor.solax_pv_voltage_*
+      # Solis
+      - sensor.solis_inverter_communication_health
