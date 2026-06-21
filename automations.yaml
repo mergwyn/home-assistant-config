@@ -911,6 +911,8 @@
     entity_id:
     - sensor.office_external_temperature
     id: office
+    for:
+      minutes: 2
     variables:
       thermostat: climate.office_thermostat
       calibration: number.office_thermostat_local_temperature_calibration
@@ -919,6 +921,8 @@
     entity_id:
     - sensor.living_room_external_temperature
     id: living room
+    for:
+      minutes: 2
     variables:
       thermostat: climate.living_room_thermostat
       calibration: number.living_room_thermostat_local_temperature_calibration
@@ -927,6 +931,8 @@
     entity_id:
     - sensor.family_room_external_temperature
     id: family room
+    for:
+      minutes: 2
     variables:
       thermostat: climate.family_room_thermostat
       calibration: number.family_room_thermostat_local_temperature_calibration
@@ -935,6 +941,8 @@
     entity_id:
     - sensor.hall_external_temperature
     id: hall
+    for:
+      minutes: 2
     variables:
       thermostat: climate.hall_thermostat
       calibration: number.hall_thermostat_local_temperature_calibration
@@ -943,6 +951,8 @@
     entity_id:
     - sensor.main_bedroom_temperature
     id: bedroom
+    for:
+      minutes: 2
     variables:
       thermostat: climate.landing_thermostat
       calibration: number.landing_thermostat_local_temperature_calibration
@@ -960,15 +970,15 @@
     stored_traces: 20
 - id: '1765376622934'
   alias: Calibrate thermostat periodic
-  description: "- wait_template: |\n    {{ not states('climate.living_room_thermostat')
-    in ['unavailable','unknown'] }}\n- wait_template: |\n    {{ not states('number.living_room_thermostat_local_temperature_calibration')
-    in ['unavailable','unknown'] }}\n- wait_template: |\n    {{ not states('sensor.living_room_external_temperature')
-    in ['unavailable','unknown'] }}"
   triggers:
   - trigger: time_pattern
-    minutes: /2
+    minutes: /30
   conditions: []
   actions:
+  - condition: template
+    value_template: "{{ not states(sensor_extern) in ['unavailable', 'unknown', 'none']\n
+      \  and not states(thermostat) in ['unavailable', 'unknown', 'none']\n   and
+      not states(calibration) in ['unavailable', 'unknown', 'none'] }}"
   - repeat:
       for_each:
       - thermostat: climate.living_room_thermostat

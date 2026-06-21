@@ -194,6 +194,12 @@ calibrate_thermostat_from_external_sensor:
   trace:
     stored_traces: 20
   sequence:
+  - condition: template
+    value_template: '{% set extern = states(sensor_extern) | float %} {% set thermo_cur
+      = state_attr(thermostat, "current_temperature") | float %} {% set cal_curr =
+      states(calibration) | float %} {% set cal_new = (extern - thermo_cur + cal_curr)
+      | round(1) %} {% set cal_step = state_attr(calibration, "step") | float %} {{
+      (cal_new - cal_curr) | abs >= cal_step }}'
   - action: number.set_value
     metadata: {}
     data:
