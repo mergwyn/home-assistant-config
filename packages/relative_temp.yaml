@@ -1,6 +1,6 @@
 template:
   - sensor:
-      - name: "Downstairs Vs Outside Temp"
+      - name: Downstairs Vs Outside Temp
         unique_id: downstairs_vs_outside_temp
         state: >-
           {% set indoor = state_attr('climate.downstairs', 'current_temperature') | float(0) %}
