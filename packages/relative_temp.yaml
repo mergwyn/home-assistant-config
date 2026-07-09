@@ -1,0 +1,45 @@
+template:
+  - sensor:
+      - name: "Downstairs Vs Outside Temp"
+        unique_id: downstairs_vs_outside_temp
+        state: >-
+          {% set indoor = state_attr('climate.downstairs', 'current_temperature') | float(0) %}
+          {% set outdoor = states('sensor.met_office_sandhutton_temperature') | float(0) %}
+          {% if indoor > outdoor %}
+            above
+          {% elif indoor < outdoor %}
+            below
+          {% else %}
+            equal
+          {% endif %}
+
+automation:
+  - alias: Downstairs temp relative to outside temp
+    description: ""
+    triggers:
+      - trigger: state
+        entity_id: sensor.downstairs_vs_outside_temp
+        to: above
+        for:
+          minutes: 10
+        id: above
+      - trigger: state
+        entity_id: sensor.downstairs_vs_outside_temp
+        to: below
+        for:
+          minutes: 10
+        id: below
+    conditions: []
+    actions:
+      - action: notify.send_message
+        metadata: {}
+        target:
+          entity_id: notify.iphone
+        data:
+          message: >-
+            Downstairs temp {{ indoor }} is {{ trigger.id }} outside temp {{ outdoor }}
+    mode: single
+    variables:
+      indoor: "{{ state_attr('climate.downstairs', 'current_temperature') | float(0) }}"
+      outdoor: "{{ states('sensor.met_office_sandhutton_temperature') | float(0) }}"
+
