@@ -195,58 +195,31 @@ calibrate_thermostat_from_external_sensor:
     stored_traces: 20
   sequence:
   - condition: template
-    value_template: '{% set extern = states(sensor_extern) | float %} {% set thermo_cur
-      = state_attr(thermostat, "current_temperature") | float %} {% set cal_curr =
-      states(calibration) | float %} {% set cal_new = (extern - thermo_cur + cal_curr)
-      | round(1) %} {% set cal_step = state_attr(calibration, "step") | float %} {{
-      (cal_new - cal_curr) | abs >= cal_step }}'
+    value_template: "{% set extern = states(sensor_extern) | float(none) %}\n{% set
+      thermo_cur = state_attr(thermostat, \"current_temperature\") | float(none) %}
+      \n{% set cal_curr = states(calibration) | float(none) %} \n{% if extern is none
+      or thermo_cur is none or cal_curr is none %}\n  false\n{% else %}\n  {# 3. Only
+      run if the calculated adjustment is sane (e.g., less than 4 degrees total change)
+      #}\n  {% set cal_new = (extern - thermo_cur + cal_curr) | round(1) %}\n  {%
+      set total_change = (cal_new - cal_curr) | abs %}\n  {{ total_change <= 4.0 }}\n{%
+      endif %}"
   - action: number.set_value
     metadata: {}
     data:
       entity_id: '{{ calibration }}'
-      value: '{% set s_calibration =  calibration  %}
+      value: '{% set extern = states(sensor_extern) | float %}
 
-        {% set s_sensor_extern = sensor_extern  %}
-
-        {% set s_thermostat = thermostat %}
-
-        {# Get external temperature #}
-
-        {% set extern = states(s_sensor_extern) | float %}
-
-        {# Get current calibration settings #}
-
-        {% set cal_curr = states(s_calibration) | float %}
-
-        {% set cal_min = state_attr(s_calibration, "min") | float %}
-
-        {% set cal_max = state_attr(s_calibration, "max") | float %}
-
-        {% set cal_step = state_attr(s_calibration, "step") | float %}
-
-        {# Get thermostat temperature #}
-
-        {% set thermo_cur = state_attr(s_thermostat, "current_temperature") | float
+        {% set thermo_cur = state_attr(thermostat, "current_temperature") | float
         %}
 
-        {# Adjust value before rounding, based on above or bellow the setpoint #}
+        {% set cal_curr = states(calibration) | float %}
 
-        {% set cal_new = (extern - thermo_cur + cal_curr ) | round(2) %}
+        {% set cal_min = state_attr(calibration, "min") | float(-10) %}
 
-        {% set cal_diff = (cal_new - cal_curr) | round (2) %}
+        {% set cal_max = state_attr(calibration, "max") | float(10) %}
 
-        {% if cal_diff  >= 0 %}
+        {% set cal_new = (extern - thermo_cur + cal_curr) | round(1) %}
 
-        {% set cal_diff = min(cal_diff,cal_step) %}
-
-        {% else %}
-
-        {% set cal_diff = max(cal_diff,cal_step*-1) %}
-
-        {% endif %}
-
-        {% set cal_new = ( cal_curr + cal_diff) | round(1) %}
-
-        {# min/max adjusted return value #}
+        {# Safely clamp within the thermostat''s hardware limits #}
 
         {{ min(max(cal_new, cal_min), cal_max) }}'

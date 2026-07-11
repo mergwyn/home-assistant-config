@@ -957,7 +957,17 @@
       thermostat: climate.landing_thermostat
       calibration: number.landing_thermostat_local_temperature_calibration
       sensor_extern: sensor.main_bedroom_temperature
-  conditions: []
+  conditions:
+  - condition: template
+    value_template: "{# 1. Check if the variables actually exist for the trigger that
+      fired #} {% if thermostat is defined and sensor_extern is defined %}\n  \n  {#
+      2. Grab the states safely #}\n  {% set extern = states(sensor_extern) | float(none)
+      %}\n  {% set thermo = state_attr(thermostat, 'current_temperature') | float(none)
+      %}\n  \n  {# 3. Only evaluate if both entities actually returned valid numbers
+      #}\n  {% if extern is not none and thermo is not none %}\n    {{ (extern - thermo)
+      | abs >= 0.2 }}\n  {% else %}\n    false\n  {% endif %}\n\n{% else %}\n  {#
+      If a trigger didn't define these vars, let it pass (or change to false if desired)
+      #}\n  true \n{% endif %}"
   actions:
   - action: script.calibrate_thermostat_from_external_sensor
     metadata: {}
@@ -975,10 +985,6 @@
     minutes: /30
   conditions: []
   actions:
-  - condition: template
-    value_template: "{{ not states(sensor_extern) in ['unavailable', 'unknown', 'none']\n
-      \  and not states(thermostat) in ['unavailable', 'unknown', 'none']\n   and
-      not states(calibration) in ['unavailable', 'unknown', 'none'] }}"
   - repeat:
       for_each:
       - thermostat: climate.living_room_thermostat
@@ -997,6 +1003,10 @@
         calibration: number.landing_thermostat_local_temperature_calibration
         sensor_extern: sensor.main_bedroom_temperature
       sequence:
+      - condition: template
+        value_template: "{{ not states(sensor_extern) in ['unavailable', 'unknown',
+          'none']\n   and not states(thermostat) in ['unavailable', 'unknown', 'none']\n
+          \  and not states(calibration) in ['unavailable', 'unknown', 'none'] }}"
       - action: script.calibrate_thermostat_from_external_sensor
         metadata: {}
         data:
@@ -1452,3 +1462,47 @@
 
         '
     action: notify.mobile_app_iphone
+- id: '1782390828277'
+  alias: Downstairs temp above outside temp
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - climate.downstairs
+    attribute: current_temperature
+    above: sensor.met_office_sandhutton_temperature
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  conditions: []
+  actions:
+  - action: notify.send_message
+    metadata: {}
+    target:
+      entity_id: notify.iphone
+    data:
+      message: 'Downstairs temp is above outside temp '
+  mode: single
+- id: '1782393304611'
+  alias: Downstairs temp below outside temp
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - climate.downstairs
+    attribute: current_temperature
+    below: sensor.met_office_sandhutton_temperature
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  conditions: []
+  actions:
+  - action: notify.send_message
+    metadata: {}
+    target:
+      entity_id: notify.iphone
+    data:
+      message: 'Downstairs temp is below outside temp '
+  mode: single
