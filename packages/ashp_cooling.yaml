@@ -1,0 +1,155 @@
+# ==============================================================================
+# PACKAGE: Samsung ASHP Underfloor Cooling Automation & Helpers
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. HELPERS (Input Controls for the Dashboard)
+# ------------------------------------------------------------------------------
+input_boolean:
+  cooling_season_enabled:
+    name: ASHP Cooling Season Master Switch
+    icon: mdi:snowflake-alert
+
+  thermostat_schedule_override:
+    name: Thermostat Schedule Override
+    icon: mdi:calendar-remove
+
+input_number:
+  cooling_min_outdoor_forecast:
+    name: Min Outdoor Forecast High
+    min: 18.0
+    max: 35.0
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:weather-sunny
+
+  cooling_min_indoor_temp:
+    name: Min Indoor Temp Threshold
+    min: 20.0
+    max: 28.0
+    step: 0.1
+    unit_of_measurement: °C
+    icon: mdi:home-thermometer
+  
+  cooling_stop_solar_threshold:
+    name: ASHP Cooling Stop Solar Threshold
+    min: 200
+    max: 2000
+    step: 50
+    unit_of_measurement: W
+    icon: mdi:solar-power
+    
+  cooling_stop_solar_duration:
+    name: ASHP Cooling Stop Solar Duration
+    min: 5
+    max: 60
+    step: 5
+    unit_of_measurement: min
+    icon: mdi:clock-outline
+
+# ------------------------------------------------------------------------------
+# 2. TEMPLATE SENSORS (The Automated Evaluation Logic)
+# ------------------------------------------------------------------------------
+template:
+  - binary_sensor:
+      - name: ASHP Cooling Allowed Today
+        unique_id: ashp_cooling_allowed_today
+        icon: mdi:snowflake
+        state: >
+          {# 1. Check if the master switch is on #}
+          {% set master_on = is_state('input_boolean.cooling_season_enabled', 'on') %}
+
+          {# 2. Check if the house is actually warm enough to need it #}
+          {% set current_indoor = states('sensor.downstairs_average_temperature') | float(0) %}
+          {% set target_indoor = states('input_number.cooling_min_indoor_temp') | float(0) %}
+          {% set indoor_warm = current_indoor >= target_indoor %}
+
+          {# 3. Grab today's maximum temperature from the weather forecast array #}
+          {% set forecast_high = state_attr('weather.home', 'forecast')[0].temperature | float(0) %}
+          {% set target_outdoor = states('input_number.cooling_min_outdoor_forecast') | float(0) %}
+          {% set forecast_hot = forecast_high >= target_outdoor %}
+
+          {# All three criteria must be true to trigger #}
+          {{ master_on and indoor_warm and forecast_hot }}
+
+# ------------------------------------------------------------------------------
+# 3. AUTOMATIONS (Startup Execution)
+# ------------------------------------------------------------------------------
+automation:
+  - alias: 'Climate: Automated Downstairs Underfloor Cooling Start'
+    id: climate_automated_downstairs_underfloor_cooling_start
+    description: Evaluates parameters in the morning to safely pre-charge the slab.
+    trigger:
+      # Evaluates in the morning before the day's solar load peaks
+      - platform: time
+        at: 09:00:00
+    condition:
+      # Only run if our template sensor confirms all parameters are satisfied
+      - condition: state
+        entity_id: binary_sensor.ashp_cooling_allowed_today
+        state: "on"
+    action:
+      # Step A: Prevent standard heating routines from overriding this setup
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.thermostat_schedule_override
+
+      # Step B: Command the downstairs stats high to force the manifold valves 100% open
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.downstairs_thermostat
+        data:
+          temperature: 30.0
+
+      # Step C: Kick the Samsung monobloc into cooling mode
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.samsung_heat_pump
+        data:
+          hvac_mode: cool
+
+      # Step D: Optional notification to keep you informed of the automated run
+      - service: notify.persistent_notification
+        data:
+          title: ASHP Cooling Active
+          message: All comfort parameters met. Pre-charging the downstairs slab at full hydraulic capacity.
+ 
+  - alias: "Climate: Automated Downstairs Underfloor Cooling Stop (Solar)"
+    id: climate_automated_downstairs_underfloor_cooling_stop_solar
+    description: Shuts down cooling when solar generation drops off at the end of the day.
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.solaredge_current_power # Change to your actual solar generation sensor
+        below: input_number.cooling_stop_solar_threshold
+        # Uses the helper value dynamically to avoid short-cycling on passing clouds
+        for:
+          minutes: "{{ states('input_number.cooling_stop_solar_duration') | int }}"
+    condition:
+      # Only run if cooling mode is actually active right now
+      - condition: state
+        entity_id: climate.samsung_heat_pump
+        state: cool
+    action:
+      # 1. Turn off the heat pump (or return it to idle/off)
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: climate.samsung_heat_pump
+        data:
+          hvac_mode: off
+
+      # 2. Re-enable standard thermostat schedules
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.thermostat_schedule_override
+
+      # 3. Optional: Reset the downstairs thermostat back to a normal heating baseline (e.g., 20°C)
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.downstairs_thermostat
+        data:
+          temperature: 20.0
+
+      - service: notify.persistent_notification
+        data:
+          title: ASHP Cooling Stopped
+          message: Solar generation has dropped below threshold. Cooling cycle completed, slab is charged.
