@@ -124,6 +124,9 @@ automation:
         # Uses the helper value dynamically to avoid short-cycling on passing clouds
         for:
           minutes: "{{ states('input_number.cooling_stop_solar_duration') | int }}"
+      # Trigger B: Hard Clock Cutoff (The Safety Net)
+      - platform: time
+        at: "20:00:00"
     condition:
       # Only run if cooling mode is actually active right now
       - condition: state
