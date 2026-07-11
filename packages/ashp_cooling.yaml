@@ -51,6 +51,20 @@ input_number:
 # 2. TEMPLATE SENSORS (The Automated Evaluation Logic)
 # ------------------------------------------------------------------------------
 template:
+  - trigger:
+      - platform: time_pattern
+        hours: /1
+      - platform: homeassistant
+        event: start
+        for:
+          minutes: 2
+    action:
+      - action: weather.get_forecasts
+        data:
+          type: daily
+        target:
+          entity_id: weather.met_office_sandhutton
+        response_variable: daily_data
   - binary_sensor:
       - name: ASHP Cooling Allowed Today
         unique_id: ashp_cooling_allowed_today
@@ -60,12 +74,12 @@ template:
           {% set master_on = is_state('input_boolean.cooling_season_enabled', 'on') %}
 
           {# 2. Check if the house is actually warm enough to need it #}
-          {% set current_indoor = states('sensor.downstairs_average_temperature') | float(0) %}
+          {% set current_indoor = state_attr('climate.downstairs', 'current_temperature') | float(0) %}
           {% set target_indoor = states('input_number.cooling_min_indoor_temp') | float(0) %}
           {% set indoor_warm = current_indoor >= target_indoor %}
 
           {# 3. Grab today's maximum temperature from the weather forecast array #}
-          {% set forecast_high = state_attr('weather.home', 'forecast')[0].temperature | float(0) %}
+          {% set forecast_high = state_attr('weather.met_office_sandhutton', 'forecast')[0].temperature | float(0) %}
           {% set target_outdoor = states('input_number.cooling_min_outdoor_forecast') | float(0) %}
           {% set forecast_hot = forecast_high >= target_outdoor %}
 
@@ -76,83 +90,71 @@ template:
 # 3. AUTOMATIONS (Startup Execution)
 # ------------------------------------------------------------------------------
 automation:
-  - alias: 'Climate: Automated Downstairs Underfloor Cooling Start'
-    id: climate_automated_downstairs_underfloor_cooling_start
-    description: Evaluates parameters in the morning to safely pre-charge the slab.
-    trigger:
-      # Evaluates in the morning before the day's solar load peaks
-      - platform: time
-        at: 09:00:00
-    condition:
-      # Only run if our template sensor confirms all parameters are satisfied
-      - condition: state
-        entity_id: binary_sensor.ashp_cooling_allowed_today
-        state: "on"
-    action:
-      # Step A: Prevent standard heating routines from overriding this setup
-      - service: input_boolean.turn_on
-        target:
-          entity_id: input_boolean.thermostat_schedule_override
-
-      # Step B: Command the downstairs stats high to force the manifold valves 100% open
-      - service: climate.set_temperature
-        target:
-          entity_id: climate.downstairs_thermostat
-        data:
-          temperature: 30.0
-
-      # Step C: Kick the Samsung monobloc into cooling mode
-      - service: climate.set_hvac_mode
-        target:
-          entity_id: climate.samsung_heat_pump
-        data:
-          hvac_mode: cool
-
-      # Step D: Optional notification to keep you informed of the automated run
-      - service: notify.persistent_notification
-        data:
-          title: ASHP Cooling Active
-          message: All comfort parameters met. Pre-charging the downstairs slab at full hydraulic capacity.
- 
-  - alias: "Climate: Automated Downstairs Underfloor Cooling Stop (Solar)"
-    id: climate_automated_downstairs_underfloor_cooling_stop_solar
-    description: Shuts down cooling when solar generation drops off at the end of the day.
-    trigger:
-      - platform: numeric_state
-        entity_id: sensor.solaredge_current_power # Change to your actual solar generation sensor
-        below: input_number.cooling_stop_solar_threshold
-        # Uses the helper value dynamically to avoid short-cycling on passing clouds
-        for:
-          minutes: "{{ states('input_number.cooling_stop_solar_duration') | int }}"
-      # Trigger B: Hard Clock Cutoff (The Safety Net)
-      - platform: time
-        at: "20:00:00"
-    condition:
-      # Only run if cooling mode is actually active right now
-      - condition: state
-        entity_id: climate.samsung_heat_pump
-        state: cool
-    action:
-      # 1. Turn off the heat pump (or return it to idle/off)
-      - service: climate.set_hvac_mode
-        target:
-          entity_id: climate.samsung_heat_pump
-        data:
-          hvac_mode: off
-
-      # 2. Re-enable standard thermostat schedules
-      - service: input_boolean.turn_off
-        target:
-          entity_id: input_boolean.thermostat_schedule_override
-
-      # 3. Optional: Reset the downstairs thermostat back to a normal heating baseline (e.g., 20°C)
-      - service: climate.set_temperature
-        target:
-          entity_id: climate.downstairs_thermostat
-        data:
-          temperature: 20.0
-
-      - service: notify.persistent_notification
-        data:
-          title: ASHP Cooling Stopped
-          message: Solar generation has dropped below threshold. Cooling cycle completed, slab is charged.
+- alias: 'Climate: Automated Downstairs Underfloor Cooling Start'
+  id: climate_automated_downstairs_underfloor_cooling_start
+  description: Evaluates parameters in the morning to safely pre-charge the slab.
+  triggers:
+  - at: 09:00:00
+    trigger: time
+  conditions:
+  - condition: state
+    entity_id: binary_sensor.ashp_cooling_allowed_today
+    state: 'on'
+  actions:
+  - target:
+      entity_id: input_boolean.thermostat_schedule_override
+    action: input_boolean.turn_on
+  - target:
+      entity_id: climate.downstairs
+    data:
+      temperature: 30
+    action: climate.set_temperature
+  - target:
+      entity_id: climate.heating_ashp_samsung_heat_pump
+    data:
+      hvac_mode: cool
+    action: climate.set_hvac_mode
+  - data:
+      title: ASHP Cooling Active
+      message: All comfort parameters met. Pre-charging the downstairs slab at full
+        hydraulic capacity.
+    action: notify.persistent_notification
+  mode: single
+- alias: "Climate: Automated Downstairs Underfloor Cooling Stop (Solar)"
+  id: climate_automated_downstairs_underfloor_cooling_stop_solar
+  description: Shuts down cooling when solar generation drops off at the end of the
+    day.
+  triggers:
+  - entity_id:
+    - sensor.solax_pv_total_power
+    below: input_number.cooling_stop_solar_threshold
+    for:
+      minutes: '{{ states(''input_number.cooling_stop_solar_duration'') | int }}'
+    trigger: numeric_state
+  - at: '20:00:00'
+    trigger: time
+  conditions:
+  - condition: state
+    entity_id: climate.heating_ashp_samsung_heat_pump
+    state:
+    - cool
+  actions:
+  - target:
+      entity_id: climate.heating_ashp_samsung_heat_pump
+    data:
+      hvac_mode: 'off'
+    action: climate.set_hvac_mode
+  - target:
+      entity_id: input_boolean.thermostat_schedule_override
+    action: input_boolean.turn_off
+  - target:
+      entity_id: climate.downstairs
+    data:
+      temperature: 19
+    action: climate.set_temperature
+  - data:
+      title: ASHP Cooling Stopped
+      message: Solar generation has dropped below threshold. Cooling cycle completed,
+        slab is charged.
+    action: notify.persistent_notification
+  mode: single
