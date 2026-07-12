@@ -982,7 +982,7 @@
   alias: Calibrate thermostat periodic
   triggers:
   - trigger: time_pattern
-    minutes: /30
+    minutes: /15
   conditions: []
   actions:
   - repeat:
@@ -1004,9 +1004,10 @@
         sensor_extern: sensor.main_bedroom_temperature
       sequence:
       - condition: template
-        value_template: "{{ not states(sensor_extern) in ['unavailable', 'unknown',
-          'none']\n   and not states(thermostat) in ['unavailable', 'unknown', 'none']\n
-          \  and not states(calibration) in ['unavailable', 'unknown', 'none'] }}"
+        value_template: "{{ not states(repeat.item.sensor_extern) in ['unavailable',
+          'unknown', 'none']\n   and not states(repeat.item.thermostat) in ['unavailable',
+          'unknown', 'none']\n   and not states(repeat.item.calibration) in ['unavailable',
+          'unknown', 'none'] }}"
       - action: script.calibrate_thermostat_from_external_sensor
         metadata: {}
         data:
