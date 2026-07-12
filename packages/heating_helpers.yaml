@@ -50,8 +50,22 @@ input_number:
     unit_of_measurement: °C
     icon: mdi:leaf
 
+template:
+  - sensor:
+      - name: Downstairs Average Temperature
+        unique_id: downstairs_average_temperature
+        unit_of_measurement: °C
+        device_class: temperature
+        state: "{{ state_attr('climate.downstairs', 'current_temperature') | float(0) }}"
+
+      - name: Downstairs Average Humidity
+        unique_id: downstairs_average_humidity
+        unit_of_measurement: '%'
+        device_class: humidity
+        state: "{{ state_attr('climate.downstairs', 'current_humidity') | float(0) }}"
+
 automation:
-  - alias: "Initialise Heating Helper Defaults"
+  - alias: Initialise Heating Helper Defaults
     trigger:
       - platform: homeassistant
         event: start
@@ -62,10 +76,10 @@ automation:
             conditions:
               - condition: state
                 entity_id: input_number.downstairs_boost
-                state: "unknown"
+                state: unknown
               - condition: state
                 entity_id: input_number.downstairs_boost
-                state: "unavailable"
+                state: unavailable
         then:
           - service: input_number.set_value
             target:
@@ -79,10 +93,10 @@ automation:
             conditions:
               - condition: state
                 entity_id: input_number.downstairs_comfort
-                state: "unknown"
+                state: unknown
               - condition: state
                 entity_id: input_number.downstairs_comfort
-                state: "unavailable"
+                state: unavailable
         then:
           - service: input_number.set_value
             target:
@@ -96,10 +110,10 @@ automation:
             conditions:
               - condition: state
                 entity_id: input_number.downstairs_eco
-                state: "unknown"
+                state: unknown
               - condition: state
                 entity_id: input_number.downstairs_eco
-                state: "unavailable"
+                state: unavailable
         then:
           - service: input_number.set_value
             target:
@@ -113,10 +127,10 @@ automation:
             conditions:
               - condition: state
                 entity_id: input_number.landing_thermostat_boost
-                state: "unknown"
+                state: unknown
               - condition: state
                 entity_id: input_number.landing_thermostat_boost
-                state: "unavailable"
+                state: unavailable
         then:
           - service: input_number.set_value
             target:
@@ -130,10 +144,10 @@ automation:
             conditions:
               - condition: state
                 entity_id: input_number.landing_thermostat_comfort
-                state: "unknown"
+                state: unknown
               - condition: state
                 entity_id: input_number.landing_thermostat_comfort
-                state: "unavailable"
+                state: unavailable
         then:
           - service: input_number.set_value
             target:
@@ -147,10 +161,10 @@ automation:
             conditions:
               - condition: state
                 entity_id: input_number.landing_thermostat_eco
-                state: "unknown"
+                state: unknown
               - condition: state
                 entity_id: input_number.landing_thermostat_eco
-                state: "unavailable"
+                state: unavailable
         then:
           - service: input_number.set_value
             target:
