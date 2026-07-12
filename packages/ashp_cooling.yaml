@@ -27,7 +27,7 @@ input_number:
     name: Min Indoor Temp Threshold
     min: 20.0
     max: 28.0
-    step: 0.1
+    step: 0.5
     unit_of_measurement: °C
     icon: mdi:home-thermometer
   
@@ -53,7 +53,7 @@ input_number:
 template:
   - trigger:
       - platform: time_pattern
-        hours: /1
+        minutes: 55
       - platform: homeassistant
         event: start
       - platform: event
@@ -80,12 +80,27 @@ template:
           {% set indoor_warm = current_indoor >= target_indoor %}
 
           {# 3. Grab today's maximum temperature from the weather forecast array #}
-          {% set forecast_high = daily_data['weather.met_office_sandhutton'].forecast[0].temperature | float(0) %}
+          {# Loop through the array to find the explicit match for today's date string #}
+          {% set today_str = now().strftime('%Y-%m-%d') %}
+          {% set today_forecast = daily_data['weather.met_office_sandhutton'].forecast | selectattr('datetime', 'search', today_str) | first %}
+
+          {# Fallback to index 0 if the date filter returns empty #}
+          {% if today_forecast is not none %}
+            {% set forecast_high = today_forecast.temperature | float(0) %}
+          {% else %}
+            {% set forecast_high = daily_data['weather.met_office_sandhutton'].forecast[0].temperature | float(0) %}
+          {% endif %}
+
           {% set target_outdoor = states('input_number.cooling_min_outdoor_forecast') | float(0) %}
           {% set forecast_hot = forecast_high >= target_outdoor %}
 
-          {# All three criteria must be true to trigger #}
-          {{ master_on and indoor_warm and forecast_hot }}
+          {# 4. NEW DEW POINT SAFETY CHECK #}
+          {# Ensures that downstairs humidity levels won't cause condensation on the slab #}
+          {% set dew_point_safe = states('sensor.thermal_comfort_dew_point') | float(0) <= 15.5 %}
+
+          {# All four criteria must be true to allow cooling #}
+          {{ master_on and indoor_warm and forecast_hot and dew_point_safe }}
+
 
 # ------------------------------------------------------------------------------
 # 3. AUTOMATIONS (Startup Execution)
@@ -108,7 +123,7 @@ automation:
         - select.m5atom_dev_external_thermostat_application_wl1
         - select.m5atom_dev_external_thermostat_application_wl2
     data:
-      option: '0'
+      option: None
     action: select.select_option
   - target:
       entity_id: input_boolean.thermostat_schedule_override
@@ -138,16 +153,29 @@ automation:
     - sensor.solax_pv_total_power
     below: input_number.cooling_stop_solar_threshold
     for:
-      minutes: '{{ states(''input_number.cooling_stop_solar_duration'') | int }}'
+      minutes: "{{ states('input_number.cooling_stop_solar_duration') | int }}"
     trigger: numeric_state
   - at: '19:00:00'
     trigger: time
+  - trigger: state
+    entity_id: binary_sensor.ashp_cooling_allowed_today
+    to: 'off'
+    for:
+      seconds: 10
+
   conditions:
   - condition: state
     entity_id: climate.heating_ashp_samsung_heat_pump
     state:
     - cool
   actions:
+  - target:
+      entity_id: climate.heating_ashp_samsung_heat_pump
+    data:
+      hvac_mode: heat
+    action: climate.set_hvac_mode
+  - delay:
+      seconds: 5
   - target:
       entity_id: climate.heating_ashp_samsung_heat_pump
     data:
@@ -159,7 +187,7 @@ automation:
   - target:
       entity_id: climate.downstairs
     data:
-      temperature: 19
+      temperature: "{{ states('input_number.downstairs_eco') }}"
     action: climate.set_temperature
     # 1. Flip FSV parameters 2901/2 to 1 (Enabling heating logic/interlocks)
   - target:
@@ -167,7 +195,7 @@ automation:
         - select.m5atom_dev_external_thermostat_application_wl1
         - select.m5atom_dev_external_thermostat_application_wl2
     data:
-      option: '1'
+      option: 'Thermostat On/Off + WL #1'
     action: select.select_option
   - data:
       title: ASHP Cooling Stopped
