@@ -1507,3 +1507,58 @@
     data:
       message: 'Downstairs temp is below outside temp '
   mode: single
+- id: '1784020588195'
+  alias: Manage battery discharge during any Predbat hold
+  description: Workaround for pre-FB00 Solis lacking freeze/reserve support - confirmed
+    permanent by Solis support 2026-07
+  triggers:
+  - id: suppress
+    entity_id: predbat.status
+    trigger: state
+  - id: suppress
+    entity_id: binary_sensor.battery_discharging
+    to: 'on'
+    trigger: state
+  - id: restore
+    entity_id: predbat.status
+    trigger: state
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: suppress
+      - condition: template
+        value_template: '{{ ''Hold'' in states(''predbat.status'') or ''Freeze'' in
+          states(''predbat.status'') }}'
+      - condition: state
+        entity_id: binary_sensor.battery_discharging
+        state: 'on'
+      sequence:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.solis_discharge_current_backup
+        data:
+          value: '{{ states(''number.solax_timed_discharge_current'') | float }}'
+      - action: number.set_value
+        target:
+          entity_id: number.solax_timed_discharge_current
+        data:
+          value: 0
+    - conditions:
+      - condition: trigger
+        id: restore
+      - condition: template
+        value_template: '{{ ''Hold'' not in states(''predbat.status'') and ''Freeze''
+          not in states(''predbat.status'') }}'
+      sequence:
+      - action: number.set_value
+        target:
+          entity_id: number.solax_timed_discharge_current
+        data:
+          value: '{{ states(''input_number.solis_discharge_current_backup'') | float
+            }}'
+      - action: button.press
+        target:
+          entity_id: button.solax_update_charge_discharge_times
+  mode: single
