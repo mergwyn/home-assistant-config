@@ -6,20 +6,12 @@
   conditions:
   - condition: state
     state:
-    - 'off'
-    entity_id: binary_sensor.my_id3_charging_cable_connected
+    - EV Connected
+    entity_id: sensor.myenergi_zappi_24876502_plug_status
   - condition: numeric_state
     entity_id: sensor.my_id3_battery_level
     below: 60
-    enabled: true
-  - condition: state
-    entity_id: device_tracker.my_id3_position
-    state:
-    - home
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
+    enabled: false
   actions:
   - data:
       message: Car is below 60% and not plugged in to charge
@@ -39,100 +31,6 @@
       seconds: '{{ range(30, 360)|random|int }}'
   - service: solcast_solar.update_forecasts
     data: {}
-  mode: single
-- id: '1690125172197'
-  alias: Start solar charge
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - device_tracker.my_id_3_tracker
-    to: home
-    for:
-      hours: 0
-      minutes: 10
-      seconds: 0
-  - platform: time
-    at: 09:00:00
-  - platform: numeric_state
-    entity_id: sensor.solis_remaining_battery_capacity
-    above: 98
-  condition:
-  - condition: sun
-    before: sunset
-    after: sunrise
-  - condition: numeric_state
-    entity_id: sensor.my_id_3_state_of_charge
-    below: 80
-  - condition: numeric_state
-    entity_id: sensor.forecast_remaining_today
-    above: 3
-  - condition: numeric_state
-    entity_id: sensor.solis_remaining_battery_capacity
-    above: 95
-  - condition: state
-    entity_id: device_tracker.my_id_3_tracker
-    state: home
-  - condition: not
-    conditions:
-    - condition: state
-      entity_id: sensor.my_id_3_charging_state
-      state: charging
-  action:
-  - if:
-    - condition: state
-      entity_id: sensor.my_id_3_plug_connection_state
-      state: connected
-    then:
-    - service: button.press
-      data: {}
-      target:
-        entity_id: button.my_id_3_start_charging
-    - service: notify.all_devices
-      data:
-        message: Auto charging started (car:{{ states('sensor.my_id_3_state_of_charge')
-          }}%, battery:{{states('sensor.solis_remaining_battery_capacity')}}%, remaining
-          forecast:{{states('sensor.forecast_remaining_today')}}kWh)"
-    else:
-    - service: notify.all_devices
-      data:
-        message: Good solar forecast but car not plugged in (car:{{ states('sensor.my_id_3_state_of_charge')
-          }}%, battery:{{states('sensor.solis_remaining_battery_capacity')}}%, remaining
-          forecast:{{states('sensor.forecast_remaining_today')}}kWh)"
-  mode: single
-- id: '1690213949634'
-  alias: Stop solar charge
-  description: ''
-  trigger:
-  - platform: numeric_state
-    entity_id: sensor.solis_remaining_battery_capacity
-    below: 95
-  - platform: numeric_state
-    entity_id: sensor.forecast_remaining_today
-    below: 2
-  condition:
-  - condition: numeric_state
-    entity_id: sensor.solis_remaining_battery_capacity
-    below: 95
-  - condition: state
-    entity_id: device_tracker.my_id_3_tracker
-    state: home
-  - condition: state
-    entity_id: sensor.my_id_3_charging_state
-    state: charging
-  - condition: sun
-    before: sunset
-    after: sunrise
-  action:
-  - service: notify.all_devices
-    data:
-      message: Auto charging stopped (car:{{ states('sensor.my_id_3_state_of_charge')
-        }}%, battery:{{states('sensor.solis_remaining_battery_capacity')}}%, remaining
-        forecast:{{states('sensor.forecast_remaining_today')}}kWh)
-  - service: button.press
-    data: {}
-    target:
-      entity_id: button.my_id_3_stop_charging
   mode: single
 - id: '1695742406464'
   alias: 'AutoBackup: Daily Backup'
@@ -1425,44 +1323,6 @@
         data:
           push:
             sound: US-EN-Morgan-Freeman-Severe-Weather-Update.wav
-- id: '1778396224039'
-  alias: IOG Boost on EV Plug-In
-  description: Sets IOG charge target based on delta between current and target SoC
-  triggers:
-  - entity_id:
-    - sensor.myenergi_zappi_24876502_plug_status
-    to:
-    - EV Connected
-    trigger: state
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 20
-  conditions:
-  - condition: template
-    value_template: "{{ states('sensor.my_id3_battery_level') | float(0) <\n   states('number.my_id3_battery_target_charge_level')
-      | float(80) }}\n"
-  actions:
-  - variables:
-      soc_current: '{{ states(''sensor.my_id3_battery_level'') | float(0) }}'
-      soc_target: '{{ states(''number.my_id3_battery_target_charge_level'') | float(80)
-        }}'
-      boost_value: '{{ [[soc_target - soc_current, 10] | max, 100] | min | round(0)
-        | int }}
-
-        '
-  - target:
-      entity_id: number.octopus_energy_00000000_0009_4000_8020_000000085d8c_intelligent_charge_target
-    data:
-      value: '{{ boost_value }}'
-    action: number.set_value
-  - data:
-      title: IOG Boost Set
-      message: 'SoC: {{ soc_current }}% → Target: {{ soc_target }}%. Boost set to
-        {{ boost_value }}%.
-
-        '
-    action: notify.mobile_app_iphone
 - id: '1782390828277'
   alias: Downstairs temp above outside temp
   description: ''
