@@ -30,7 +30,7 @@ input_number:
     step: 0.5
     unit_of_measurement: °C
     icon: mdi:home-thermometer
-  
+
   cooling_stop_solar_threshold:
     name: ASHP Cooling Stop Solar Threshold
     min: 200
@@ -38,7 +38,7 @@ input_number:
     step: 50
     unit_of_measurement: W
     icon: mdi:solar-power
-    
+
   cooling_stop_solar_duration:
     name: ASHP Cooling Stop Solar Duration
     min: 5
@@ -132,6 +132,11 @@ automation:
       entity_id: climate.downstairs
     data:
       temperature: 30
+    action: climate.set_temperature
+  - target:
+      entity_id: climate.ashp_samsung_heat_pump
+    data:
+      temperature: 19
     action: climate.set_temperature
   - target:
       entity_id: climate.heating_ashp_samsung_heat_pump
