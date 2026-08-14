@@ -134,7 +134,7 @@ automation:
       temperature: 30
     action: climate.set_temperature
   - target:
-      entity_id: climate.ashp_samsung_heat_pump
+      entity_id: climate.heating_ashp_samsung_heat_pump
     data:
       temperature: 19
     action: climate.set_temperature
