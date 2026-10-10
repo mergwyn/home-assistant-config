@@ -1220,6 +1220,10 @@
     entity_id: climate.m5atom_dev_hot_water
     attribute: current_temperature
     below: 47
+  - condition: state
+    entity_id: binary_sensor.holiday_mode
+    state:
+    - 'off'
   actions:
   - data:
       message: Hot water temperature is only {{ state_attr("climate.m5atom_dev_hot_water","current_temperature")
