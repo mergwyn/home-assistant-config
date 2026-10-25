@@ -1,10 +1,13 @@
+---
 # packages/heating_control.yaml
 template:
   - binary_sensor:
       - name: "Octopus power up active"
         unique_id: octopus_power_up_active
         state: "{{ is_state('calendar.octopus_energy_a_281ee75f_octoplus_power_up', 'on') }}"
-
+      - name: "Octopus daytime heating boost active"
+        unique_id: octopus_daytime_heating_boost_active
+        state: "{{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost', 'on') }}"
 timer:
   heating_boost:
     name: Heating boost
@@ -21,7 +24,7 @@ automation:
     mode: restart
     triggers:
       - trigger: state
-        entity_id: binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost
+        entity_id: binary_sensor.octopus_daytime_heating_boost_active
         to: ["on", "off"]
         for: "00:01:00"
       - trigger: state
@@ -37,11 +40,11 @@ automation:
       - alias: Skip while the target sensor is unavailable
         condition: template
         value_template: >
-          {{ states('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost')
+          {{ states('binary_sensor.octopus_daytime_heating_boost_active')
              in ['on', 'off'] }}
     variables:
       boost_wanted: >
-        {{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost', 'on')
+        {{ is_state('binary_sensor.octopus_daytime_heating_boost_active', 'on')
            or is_state('binary_sensor.octopus_power_up_active', 'on')
            or is_state('timer.heating_boost', 'active') }}
       boost_temp: "{{ states('input_number.downstairs_boost') | float }}"
@@ -52,7 +55,7 @@ automation:
           name: Heating boost
           message: >
             wanted={{ boost_wanted }}
-            target={{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost', 'on') }}
+            target={{ is_state('binary_sensor.octopus_daytime_heating_boost_active', 'on') }}
             calendar={{ is_state('binary_sensor.octopus_power_up_active', 'on') }}
             timer={{ is_state('timer.heating_boost', 'active') }}
       - action: script.update_climate
