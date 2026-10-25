@@ -1,3 +1,48 @@
+# packages/heating_control.yaml
+timer:
+  heating_boost:
+    name: Heating boost
+    duration: "01:00:00"
+    restore: true
+
+automation:
+  - id: heating_downstairs_boost_new
+    alias: Downstairs heating boost new
+    mode: restart
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost
+        to: ["on", "off"]
+        for: "00:01:00"
+      - trigger: state
+        entity_id: calendar.octopus_energy_power_up_sessions   # confirm real name
+        to: ["on", "off"]
+        for: "00:01:00"
+      - trigger: state
+        entity_id: timer.heating_boost
+        to: ["active", "idle"]
+      - trigger: homeassistant
+        event: start
+    conditions:
+      - alias: Skip while the target sensor is unavailable
+        condition: template
+        value_template: >
+          {{ states('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost')
+             in ['on', 'off'] }}
+    variables:
+      boost_wanted: >
+        {{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost', 'on')
+           or is_state('calendar.octopus_energy_power_up_sessions', 'on')
+           or is_state('timer.heating_boost', 'active') }}
+      boost_temp: "{{ states('input_number.downstairs_boost') | float }}"
+      comfort_temp: "{{ states('input_number.downstairs_comfort') | float }}"
+    actions:
+      - action: script.update_climate
+        data:
+          climate: downstairs
+          temperature: "{{ boost_temp if boost_wanted else comfort_temp }}"
+          cycle: "{{ not boost_wanted }}"
+
 script:
   update_climate:
     alias: Update Climate
