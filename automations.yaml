@@ -438,6 +438,7 @@
     path: jcwillox/notify_auto_backup.yaml
     input:
       devices:
+      - 78cb39889c1dcb87ba03e00bb015f537
       - 8ce10e80229e57f8be8e0c1354c0321e
 - id: '1737024452326'
   alias: Generic entity not available alert
