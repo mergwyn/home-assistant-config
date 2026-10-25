@@ -1,7 +1,17 @@
 # packages/heating_control.yaml
+template:
+  - binary_sensor:
+      - name: "Octopus power up active"
+        unique_id: octopus_power_up_active
+        state: "{{ is_state('calendar.octopus_energy_a_281ee75f_octoplus_power_up', 'on') }}"
+
 timer:
   heating_boost:
     name: Heating boost
+    duration: "01:00:00"
+    restore: true
+  dhw_boost:
+    name: DHW boost
     duration: "01:00:00"
     restore: true
 
@@ -15,7 +25,7 @@ automation:
         to: ["on", "off"]
         for: "00:01:00"
       - trigger: state
-        entity_id: calendar.octopus_energy_power_up_sessions   # confirm real name
+        entity_id: binary_sensor.octopus_power_up_active
         to: ["on", "off"]
         for: "00:01:00"
       - trigger: state
@@ -32,11 +42,19 @@ automation:
     variables:
       boost_wanted: >
         {{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost', 'on')
-           or is_state('calendar.octopus_energy_power_up_sessions', 'on')
+           or is_state('binary_sensor.octopus_power_up_active', 'on')
            or is_state('timer.heating_boost', 'active') }}
       boost_temp: "{{ states('input_number.downstairs_boost') | float }}"
       comfort_temp: "{{ states('input_number.downstairs_comfort') | float }}"
     actions:
+      - action: logbook.log
+        data:
+          name: Heating boost
+          message: >
+            wanted={{ boost_wanted }}
+            target={{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost', 'on') }}
+            calendar={{ is_state('binary_sensor.octopus_power_up_active', 'on') }}
+            timer={{ is_state('timer.heating_boost', 'active') }}
       - action: script.update_climate
         data:
           climate: downstairs
