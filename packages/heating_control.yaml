@@ -7,7 +7,7 @@ template:
         state: "{{ is_state('calendar.octopus_energy_a_281ee75f_octoplus_power_up', 'on') }}"
       - name: "Octopus daytime heating boost active"
         unique_id: octopus_daytime_heating_boost_active
-        state: "{{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost', 'on') }}"
+        state: "{{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_overnight_boost', 'on') }}"
   - sensor:
       - name: "Heating upstairs mode"
         unique_id: heating_upstairs_mode
