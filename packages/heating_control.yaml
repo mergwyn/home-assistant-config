@@ -19,6 +19,37 @@ template:
           {% elif is_state('schedule.heating_up_eco', 'on') %}eco
           {% else %}comfort{% endif %}
 
+schedule:
+  heating_up_boost_am:
+    name: Heating upstairs boost AM
+    monday: &boost_am [{from: "07:00:00", to: "08:00:00"}]
+    tuesday: *boost_am
+    wednesday: *boost_am
+    thursday: *boost_am
+    friday: *boost_am
+    saturday: *boost_am
+    sunday: *boost_am
+  heating_up_boost_pm:
+    name: Heating upstairs boost PM
+    monday: &boost_pm [{from: "21:30:00", to: "22:30:00"}]
+    tuesday: *boost_pm
+    wednesday: *boost_pm
+    thursday: *boost_pm
+    friday: *boost_pm
+    saturday: *boost_pm
+    sunday: *boost_pm
+  heating_up_eco:
+    name: Heating upstairs eco
+    monday: &eco_up
+      - {from: "00:00:00", to: "07:00:00"}
+      - {from: "22:30:00", to: "24:00:00"}
+    tuesday: *eco_up
+    wednesday: *eco_up
+    thursday: *eco_up
+    friday: *eco_up
+    saturday: *eco_up
+    sunday: *eco_up
+
 timer:
   heating_boost:
     name: Heating boost
