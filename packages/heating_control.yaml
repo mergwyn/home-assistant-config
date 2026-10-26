@@ -8,6 +8,17 @@ template:
       - name: "Octopus daytime heating boost active"
         unique_id: octopus_daytime_heating_boost_active
         state: "{{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost', 'on') }}"
+  - sensor:
+      - name: "Heating upstairs mode"
+        unique_id: heating_upstairs_mode
+        state: >
+          {% if is_state('schedule.heating_up_boost_am', 'on')
+             or is_state('schedule.heating_up_boost_pm', 'on')
+             or is_state('binary_sensor.octopus_power_up_active', 'on')
+             or is_state('timer.heating_boost', 'active') %}boost
+          {% elif is_state('schedule.heating_up_eco', 'on') %}eco
+          {% else %}comfort{% endif %}
+
 timer:
   heating_boost:
     name: Heating boost
@@ -19,8 +30,8 @@ timer:
     restore: true
 
 automation:
-  - id: heating_downstairs_boost_new
-    alias: Downstairs heating boost new
+  - id: heating_downstairs_boost
+    alias: Downstairs heating boost
     mode: restart
     triggers:
       - trigger: state
@@ -63,6 +74,37 @@ automation:
           climate: downstairs
           temperature: "{{ boost_temp if boost_wanted else comfort_temp }}"
           cycle: "{{ not boost_wanted }}"
+
+  - id: heating_upstairs_boost
+    alias: Upstairs heating boost
+    mode: restart
+    triggers:
+      - trigger: state
+        entity_id: sensor.heating_upstairs_mode
+        to: ["boost", "comfort", "eco"]
+      - trigger: homeassistant
+        event: start
+    conditions:
+      - condition: template
+        value_template: "{{ states('sensor.heating_upstairs_mode') in ['boost', 'comfort', 'eco'] }}"
+    variables:
+      mode: "{{ states('sensor.heating_upstairs_mode') }}"
+      temps:
+        boost: "{{ states('input_number.landing_thermostat_boost') | float }}"
+        comfort: "{{ states('input_number.landing_thermostat_comfort') | float }}"
+        eco: "{{ states('input_number.landing_thermostat_eco') | float }}"
+    actions:
+      - action: logbook.log
+        data:
+          name: Upstairs heating
+          message: "mode={{ mode }} temp={{ temps[mode] }} cycle={{ mode != 'boost' }}"
+      - action: script.update_climate
+        enabled: false
+        data:
+          climate: landing_thermostat
+          temperature: "{{ temps[mode] }}"
+          cycle: "{{ mode != 'boost' }}"
+
 
 script:
   update_climate:
