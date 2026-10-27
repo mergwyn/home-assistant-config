@@ -28,8 +28,8 @@ blueprint:
             value: auto_backup.backup_failed
           - label: Backup Purged
             value: auto_backup.purged_backups
-          sort: false
           custom_value: false
+          sort: false
     notify_hass:
       name: Send to Home Assistant
       description: Send to Home Assistant as a persistent notification
