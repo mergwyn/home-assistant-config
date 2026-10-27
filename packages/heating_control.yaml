@@ -22,6 +22,7 @@ schedule:
   # The boost and eco times need to match.
   # All others times default to comfort
   heating_up_boost:
+    name: Heating upstairs boost
     monday: &boost_up
       - {from: "07:00:00", to: "08:00:00"}
       - {from: "21:30:00", to: "22:30:00"}
