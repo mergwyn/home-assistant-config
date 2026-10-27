@@ -51,6 +51,20 @@ input_number:
     icon: mdi:leaf
 
 template:
+  - binary_sensor:
+      - name: "ASHP space heating active"
+        unique_id: ashp_space_heating_active
+        device_class: heat
+        state: "{{ states('sensor.m5atom_dev_zone_heating_status') | float(0) > 0 }}"
+  - sensor:
+      - name: "Downstairs target temperature"
+        unique_id: downstairs_target_temperature
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state_class: measurement
+        icon: mdi:thermometer
+        state: "{{ state_attr('climate.downstairs', 'temperature') }}"
+        availability: "{{ state_attr('climate.downstairs', 'temperature') is not none }}"
   - sensor:
       - name: Downstairs Average Temperature
         unique_id: downstairs_average_temperature
