@@ -1,0 +1,95 @@
+---
+# yamllint disable rule:line-length
+
+input_text:
+  igo_import_current:
+    name: IOG Import (Configured)
+    initial: INTELLI-VAR-24-10-29
+
+  agile_import_current:
+    name: Agile Import (Configured)
+    initial: AGILE-24-10-01
+
+  agile_export_current:
+    name: Agile Export (Configured)
+    initial: AGILE-OUTGOING-19-05-13
+
+  var_export_current:
+    name: Fixed Export (Configured)
+    initial: OUTGOING-VAR-24-10-26
+
+
+command_line:
+  - sensor:
+      name: Latest Agile Import
+      command: >
+        curl -s https://api.octopus.energy/v1/products/ |
+        jq -r '.results[].code' |
+        grep -E '^AGILE-[0-9]' |
+        sort -r |
+        head -n1
+
+  - sensor:
+      name: Latest Agile Export
+      command: >
+        curl -s https://api.octopus.energy/v1/products/ |
+        jq -r '.results[].code' |
+        grep '^AGILE-OUTGOING-' |
+        sort -r |
+        head -n1
+
+  - sensor:
+      name: Latest IOG Import
+      command: >
+        curl -s https://api.octopus.energy/v1/products/ |
+        jq -r '.results[].code' |
+        grep '^INTELLI-VAR-' |
+        sort -r |
+        head -n1
+
+  - sensor:
+      name: Latest Fixed Export
+      command: >
+        curl -s https://api.octopus.energy/v1/products/ |
+        jq -r '.results[].code' |
+        grep '^OUTGOING-VAR-' |
+        sort -r |
+        head -n1
+
+
+template:
+  - sensor:
+      - name: "Electricity rate with power up"
+        unique_id: electricity_rate_with_power_up
+        unit_of_measurement: "GBP/kWh"
+        state_class: measurement
+        availability: >
+          {{ is_number(states('sensor.octopus_energy_electricity_22l3527084_1580001758865_current_rate')) }}
+        state: >
+          {{ 0 if is_state('binary_sensor.octopus_power_up_active', 'on')
+             else states('sensor.octopus_energy_electricity_22l3527084_1580001758865_current_rate') | float }}
+
+      - name: Agile Import Drift
+        state: >
+          {{ states('sensor.latest_agile_import') != states('input_text.agile_import_current') }}
+
+      - name: Agile Export Drift
+        state: >
+          {{ states('sensor.latest_agile_export') != states('input_text.agile_export_current') }}
+
+      - name: IOG Import Drift
+        state: >
+          {{ states('sensor.latest_iog_import') != states('input_text.igo_import_current') }}
+
+      - name: Fixed Export Drift
+        state: >
+          {{ states('sensor.latest_fixed_export') != states('input_text.var_export_current') }}
+
+      - name: Any Tariff Drift
+        state: >
+          {{
+            is_state('sensor.agile_import_drift', 'True') or
+            is_state('sensor.agile_export_drift', 'True') or
+            is_state('sensor.iog_import_drift', 'True') or
+            is_state('sensor.fixed_export_drift', 'True')
+          }}
