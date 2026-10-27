@@ -175,7 +175,7 @@ set_climate:
       description: preset
     climate:
       description: eg landing
-  description: Set a climate temperature or preset mode
+  description: Set a climate temperature or preset mode v1
   icon: mdi:thermostat-auto
   alias: Set Climate
   mode: queued
