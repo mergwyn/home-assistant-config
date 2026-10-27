@@ -12,32 +12,25 @@ template:
       - name: "Heating upstairs mode"
         unique_id: heating_upstairs_mode
         state: >
-          {% if is_state('schedule.heating_up_boost_am', 'on')
-             or is_state('schedule.heating_up_boost_pm', 'on')
+          {% if is_state('schedule.heating_up_boost_up, 'on')
              or is_state('binary_sensor.octopus_power_up_active', 'on')
              or is_state('timer.heating_boost', 'active') %}boost
           {% elif is_state('schedule.heating_up_eco', 'on') %}eco
           {% else %}comfort{% endif %}
 
 schedule:
-  heating_up_boost_am:
-    name: Heating upstairs boost AM
-    monday: &boost_am [{from: "07:00:00", to: "08:00:00"}]
-    tuesday: *boost_am
-    wednesday: *boost_am
-    thursday: *boost_am
-    friday: *boost_am
-    saturday: *boost_am
-    sunday: *boost_am
-  heating_up_boost_pm:
-    name: Heating upstairs boost PM
-    monday: &boost_pm [{from: "21:30:00", to: "22:30:00"}]
-    tuesday: *boost_pm
-    wednesday: *boost_pm
-    thursday: *boost_pm
-    friday: *boost_pm
-    saturday: *boost_pm
-    sunday: *boost_pm
+  # The boost and eco times need to match.
+  # All others times default to comfort
+  heating_up_boost:
+    monday: &boost_up
+      - {from: "07:00:00", to: "08:00:00"}
+      - {from: "21:30:00", to: "22:30:00"}
+    tuesday: *boost_up
+    wednesday: *boost_up
+    thursday: *boost_up
+    friday: *boost_up
+    saturday: *boost_up
+    sunday: *boost_up
   heating_up_eco:
     name: Heating upstairs eco
     monday: &eco_up
