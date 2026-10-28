@@ -2,6 +2,27 @@
 # yamllint disable rule:line-length
 # packages/heating_control.yaml
 template:
+  - triggers:
+      - trigger: state
+        entity_id: &boost binary_sensor.target_timeframes_octopus_energy_import_heating_daytime_boost
+        to: "on"
+        id: start
+      - trigger: state
+        entity_id: *boost
+        to: "off"
+        id: stop
+    binary_sensor:
+      - name: "Rolling target outside cheap slot"
+        unique_id: rolling_target_outside_cheap_slot
+        device_class: running
+        state: >
+          {% if trigger.id == 'start' %}
+            {% set t = now().strftime('%H:%M') %}
+            {{ '05:30' <= t < '23:30' }}
+          {% else %}
+            false
+          {% endif %}
+
   - binary_sensor:
       - name: "Octopus power up active"
         unique_id: octopus_power_up_active
@@ -12,13 +33,13 @@ template:
         device_class: running
         state: >
           {% set t = now().strftime('%H:%M') %}
-          {{ is_state('binary_sensor.octopus_energy_XXXX_intelligent_dispatching', 'on')
+          {{ is_state('binary_sensor.octopus_energy_00000000_0002_4000_8020_000000106d40_intelligent_dispatching', 'on')
              and '05:30' <= t < '23:30' }}
 
       - name: "Octopus heating boost active"
         unique_id: octopus_heating_boost_active
         state: "{{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_overnight_boost', 'on')
-                  or is_state('binary_sensor.iog_extra_dispatch_outside_cheap_slot', 'on') }}"
+                  or is_state('binary_sensor.rolling_target_outside_cheap_slot', 'on') }}"
   - sensor:
       - name: "Heating upstairs mode"
         unique_id: heating_upstairs_mode
