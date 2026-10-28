@@ -6,9 +6,19 @@ template:
       - name: "Octopus power up active"
         unique_id: octopus_power_up_active
         state: "{{ is_state('calendar.octopus_energy_a_281ee75f_octoplus_power_up', 'on') }}"
+
+      - name: "IOG extra dispatch outside cheap slot"
+        unique_id: iog_extra_dispatch_outside_cheap_slot
+        device_class: running
+        state: >
+          {% set t = now().strftime('%H:%M') %}
+          {{ is_state('binary_sensor.octopus_energy_XXXX_intelligent_dispatching', 'on')
+             and '05:30' <= t < '23:30' }}
+
       - name: "Octopus heating boost active"
         unique_id: octopus_heating_boost_active
-        state: "{{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_overnight_boost', 'on') }}"
+        state: "{{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_overnight_boost', 'on')
+                  or is_state('binary_sensor.iog_extra_dispatch_outside_cheap_slot', 'on') }}"
   - sensor:
       - name: "Heating upstairs mode"
         unique_id: heating_upstairs_mode
