@@ -1,0 +1,35 @@
+---
+# yamllint disable rule:line-length
+
+template:
+  - trigger:
+      - platform: state
+        entity_id: sensor.ashp_clamp_energy
+    sensor:
+      - name: "ASHP DHW energy"
+        unique_id: ashp_dhw_energy
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >-
+          {% set delta = states('sensor.ashp_clamp_energy') | float(0) - this.attributes.get('last_clamp', states('sensor.ashp_clamp_energy') | float(0)) %}
+          {% if delta < 0 %}{% set delta = 0 %}{% endif %}
+          {{ (this.state | float(0)) + (delta if is_state('sensor.samsung_ashp_dhw_status','1') else 0) }}
+        attributes:
+          last_clamp: "{{ states('sensor.ashp_clamp_energy') | float(0) }}"
+
+  - trigger:
+      - platform: state
+        entity_id: sensor.ashp_clamp_energy
+    sensor:
+      - name: "ASHP Heating energy"
+        unique_id: ashp_heating_energy
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        state: >-
+          {% set delta = states('sensor.ashp_clamp_energy') | float(0) - this.attributes.get('last_clamp', states('sensor.ashp_clamp_energy') | float(0)) %}
+          {% if delta < 0 %}{% set delta = 0 %}{% endif %}
+          {{ (this.state | float(0)) + (delta if is_state('sensor.samsung_ashp_dhw_status','0') else 0) }}
+        attributes:
+          last_clamp: "{{ states('sensor.ashp_clamp_energy') | float(0) }}"
