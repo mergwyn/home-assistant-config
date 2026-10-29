@@ -113,7 +113,7 @@ automation:
     variables:
       boost_wanted: >
         {{ is_state('binary_sensor.octopus_heating_boost_active', 'on')
-           or is_state('binary_sensor.octopus_power_up_active', 'on') }}
+           or is_state('binary_sensor.octopus_power_up_active', 'on')
            or is_state('timer.heating_boost', 'active') }}
       boost_temp: "{{ states('input_number.downstairs_boost') | float }}"
       comfort_temp: "{{ states('input_number.downstairs_comfort') | float }}"
