@@ -6,7 +6,7 @@
 #
 
 recorder:
-  purge_keep_days: 10
+  purge_keep_days: 30
   auto_purge: true
   auto_repack: true
   exclude:
