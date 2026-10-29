@@ -156,7 +156,7 @@ automation:
           name: Upstairs heating
           message: "mode={{ mode }} temp={{ temps[mode] }} cycle={{ mode != 'boost' }}"
       - action: script.update_climate
-        enabled: false
+        enabled: true
         data:
           climate: landing_thermostat
           temperature: "{{ temps[mode] }}"
