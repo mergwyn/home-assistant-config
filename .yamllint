@@ -1,3 +1,4 @@
 extends: default
 rules:
   quoted-strings: disable
+  line-length: disable
