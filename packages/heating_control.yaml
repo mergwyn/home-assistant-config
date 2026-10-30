@@ -217,7 +217,7 @@ automation:
 script:
   update_climate:
     alias: Update Climate
-    description: Set a climate temperature or preset mode
+    description: Set a climate temperature or preset mode, then cycle the thermostat off/on
     icon: mdi:thermostat-auto
     mode: queued
     max: 10
@@ -229,9 +229,6 @@ script:
         description: Target temperature
       preset:
         description: Preset mode
-      cycle:
-        description: Turn the thermostat off then on after setting, to cancel an in-progress heat call
-        default: false
     sequence:
       - condition: template
         alias: Check variables are set
@@ -239,43 +236,36 @@ script:
       - variables:
           entity: "{{ 'climate.' ~ climate }}"
           target_temp: "{{ temperature | float(none) if temperature is defined else none }}"
-          do_cycle: "{{ cycle | default(false) | bool }}"
-      - condition: template
-        alias: Skip if already at the requested setpoint or preset
-        value_template: >
-          {{ (preset is defined and state_attr(entity, 'preset_mode') != preset)
-             or (target_temp is not none
-                 and state_attr(entity, 'temperature') | float(none) != target_temp) }}
-      - choose:
-          - conditions: "{{ preset is defined }}"
-            sequence:
-              - action: climate.set_preset_mode
-                target:
-                  entity_id: "{{ entity }}"
-                data:
-                  preset_mode: "{{ preset }}"
-              - wait_template: "{{ state_attr(entity, 'preset_mode') == preset }}"
-                timeout: "00:00:10"
-          - conditions: "{{ target_temp is not none }}"
-            sequence:
-              - action: climate.set_temperature
-                target:
-                  entity_id: "{{ entity }}"
-                data:
-                  temperature: "{{ target_temp }}"
-              - wait_template: "{{ state_attr(entity, 'temperature') | float(none) == target_temp }}"
-                timeout: "00:00:10"
-      - alias: Cycle to cancel an in-progress heat call
-        if: "{{ do_cycle }}"
+          needs_change: >
+            {{ (preset is defined and state_attr(entity, 'preset_mode') != preset)
+               or (target_temp is not none
+                   and state_attr(entity, 'temperature') | float(none) != target_temp) }}
+      - alias: Set preset or temperature only if different
+        if: "{{ needs_change }}"
         then:
-          - action: climate.turn_off
-            target:
-              entity_id: "{{ entity }}"
-          - wait_template: "{{ is_state(entity, 'off') }}"
-            timeout: "00:00:10"
+          - choose:
+              - conditions: "{{ preset is defined }}"
+                sequence:
+                  - action: climate.set_preset_mode
+                    target:
+                      entity_id: "{{ entity }}"
+                    data:
+                      preset_mode: "{{ preset }}"
+              - conditions: "{{ target_temp is not none }}"
+                sequence:
+                  - action: climate.set_temperature
+                    target:
+                      entity_id: "{{ entity }}"
+                    data:
+                      temperature: "{{ target_temp }}"
           - delay: "00:00:05"
-          - action: climate.turn_on
-            target:
-              entity_id: "{{ entity }}"
-          - wait_template: "{{ not is_state(entity, 'off') }}"
-            timeout: "00:00:10"
+      - alias: Always cycle off/on
+        action: climate.turn_off
+        target:
+          entity_id: "{{ entity }}"
+      - wait_template: "{{ is_state(entity, 'off') }}"
+        timeout: "00:00:05"
+      - delay: "00:00:05"
+      - action: climate.turn_on
+        target:
+          entity_id: "{{ entity }}"
