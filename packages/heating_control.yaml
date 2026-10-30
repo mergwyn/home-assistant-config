@@ -40,6 +40,14 @@ template:
         unique_id: octopus_heating_boost_active
         state: "{{ is_state('binary_sensor.target_timeframes_octopus_energy_import_heating_overnight_boost', 'on')
                   or is_state('binary_sensor.rolling_target_outside_cheap_slot', 'on') }}"
+
+      - name: DHW boost active
+        unique_id: dhw_boost_active
+        state: >
+          {{ is_state('binary_sensor.target_timeframes_octopus_energy_import_hot_water_nightly', 'on')
+             or is_state('timer.dhw_boost', 'active')
+             or is_state('binary_sensor.octopus_power_up_active', 'on') }}
+
   - sensor:
       - name: "Heating upstairs mode"
         unique_id: heating_upstairs_mode
@@ -126,6 +134,7 @@ automation:
             target={{ is_state('binary_sensor.octopus_heating_boost_active', 'on') }}
             calendar={{ is_state('binary_sensor.octopus_power_up_active', 'on') }}
             timer={{ is_state('timer.heating_boost', 'active') }}
+          # entity_id: "{{ climate }}"
       - action: script.update_climate
         data:
           climate: downstairs
@@ -155,6 +164,7 @@ automation:
         data:
           name: Upstairs heating
           message: "mode={{ mode }} temp={{ temps[mode] }} cycle={{ mode != 'boost' }}"
+          # entity_id: "{{ climate }}"
       - action: script.update_climate
         enabled: true
         data:
@@ -162,6 +172,47 @@ automation:
           temperature: "{{ temps[mode] }}"
           cycle: "{{ mode != 'boost' }}"
 
+  - alias: DHW boost
+    id: dhw_boost
+    mode: restart
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.dhw_boost_active
+        to: ["on", "off"]
+      - trigger: homeassistant
+        event: start
+    variables:
+      climate: climate.m5atom_dev_hot_water
+      min_temp: 30
+      boost: "{{ states('input_number.dhw_boost') | float(50) }}"
+      legionella: "{{ states('input_number.dhw_legionella') | float(55) }}"
+      holiday: "{{ states('input_number.dhw_holiday_temp') | float(40) }}"
+      setback: "{{ states('input_number.dhw_setback') | float(0) }}"
+      holiday_mode: "{{ is_state('binary_sensor.holiday_mode', 'on') }}"
+      boost_temp: >
+        {{ holiday if holiday_mode
+           else legionella if now().weekday() == 2
+           else boost }}
+      day_temp: >
+        {{ holiday if holiday_mode
+           else [boost - setback, min_temp] | max }}
+      setpoint: >
+        {{ boost_temp if is_state('binary_sensor.dhw_boost_active', 'on')
+           else day_temp }}
+    actions:
+      - action: logbook.log
+        data:
+          name: DHW boost
+          message: >
+            boost active: {{ is_state('binary_sensor.dhw_boost_active', 'on') }},
+            setpoint: {{ setpoint }},
+            trigger: {{ trigger.platform }}
+          # entity_id: "{{ climate }}"
+      - action: script.update_climate
+        enabled: false   # re-enable after testing
+        data:
+          climate: "{{ climate }}"
+          temperature: "{{ setpoint }}"
 
 script:
   update_climate:
@@ -222,7 +273,7 @@ script:
               entity_id: "{{ entity }}"
           - wait_template: "{{ is_state(entity, 'off') }}"
             timeout: "00:00:10"
-          - delay: "00:00:03"
+          - delay: "00:00:05"
           - action: climate.turn_on
             target:
               entity_id: "{{ entity }}"
