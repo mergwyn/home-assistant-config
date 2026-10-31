@@ -16,21 +16,17 @@ emoncms_history:
     - sensor.ashp_power_consumed_last_minute_clamp
     - sensor.ashp_total_energy_consumed_adjusted
 
-# emoncms_history:
-#   api_key: !secret emoncms_api_key
-#   url: https://emoncms.org
-#   inputnode: 19
-#   whitelist:
-#     - sensor.status_of_hot_water_circuit
-#     - sensor.status_of_heating_circuit
-#     - sensor.outside_temperature_2
-#     - sensor.cumulative_electric_use_kwh
-#     - ssensor.electric_use_in_watts
-#     - sensor.cumulative_heat_output_in_kwh
-#     - sensor.heat_output_in_watts
-#     - sensor.flow_rate
-#     - sensor.flow_temperature
-#     - sensor.return_temperature
+# TODO replace each of the above with:
+#     - sensor.emoncms_status_of_hot_water_circuit
+#     - sensor.emoncms_status_of_heating_circuit
+#     - sensor.emoncms_outside_temperature_2
+#     - sensor.emoncms_cumulative_electric_use_kwh
+#     - sensor.emoncms_electric_use_in_watts
+#     - sensor.emoncms_cumulative_heat_output_in_kwh
+#     - sensor.emoncms_heat_output_in_watts
+#     - sensor.emoncms_flow_rate
+#     - sensor.emoncms_flow_temperature
+#     - sensor.emoncms_return_temperature
 
 # This list of sensors provide a alias for the emoncms feed to allo
 
