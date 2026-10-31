@@ -182,7 +182,7 @@ automation:
       - trigger: homeassistant
         event: start
     variables:
-      climate: climate.m5atom_dev_hot_water
+      climate: m5atom_dev_hot_water
       min_temp: 30
       boost: "{{ states('input_number.dhw_boost') | float(50) }}"
       legionella: "{{ states('input_number.dhw_legionella') | float(55) }}"
@@ -209,10 +209,55 @@ automation:
             trigger: {{ trigger.platform }}
           # entity_id: "{{ climate }}"
       - action: script.update_climate
-        enabled: false   # re-enable after testing
+        enabled: true   # re-enable after testing
         data:
           climate: "{{ climate }}"
           temperature: "{{ setpoint }}"
+
+  - alias: Check Hot water for Ann
+    id: check_hot_water_for_ann
+    description: Check whether hot water is hot enough for a morning shower!
+    triggers:
+      - trigger: time
+        at: '08:10:00'
+    conditions:
+      - condition: numeric_state
+        entity_id: climate.m5atom_dev_hot_water
+        attribute: current_temperature
+        below: 47
+      - condition: state
+        entity_id: binary_sensor.holiday_mode
+        state: 'off'
+    actions:
+      - action: notify.all_devices
+        data:
+          title: Hot water is low
+          message: >-
+            Hot water temperature is only
+            {{ state_attr("climate.m5atom_dev_hot_water","current_temperature") }}°C
+          data:
+            tag: dhw_low_temp
+            actions:
+              - action: DHW_BOOST_START
+                title: Boost hot water
+              - action: DHW_BOOST_IGNORE
+                title: Ignore
+    mode: single
+
+  - alias: Handle DHW boost notification action
+    id: handle_dhw_boost_notification
+    triggers:
+      - trigger: event
+        event_type: mobile_app_notification_action
+        event_data:
+          action: DHW_BOOST_START
+    actions:
+      - action: timer.start
+        target:
+          entity_id: timer.dhw_boost
+        data:
+          duration: '00:30:00'
+    mode: single
 
 script:
   update_climate:

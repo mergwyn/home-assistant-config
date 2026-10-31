@@ -1168,27 +1168,6 @@
         data:
           value: 0
   mode: queued
-- id: '1767888701370'
-  alias: Check Hot water for Ann
-  description: Check whether hot water is hot enough for a morning shower!
-  triggers:
-  - trigger: time
-    at: 08:10:00
-  conditions:
-  - condition: numeric_state
-    entity_id: climate.m5atom_dev_hot_water
-    attribute: current_temperature
-    below: 47
-  - condition: state
-    entity_id: binary_sensor.holiday_mode
-    state:
-    - 'off'
-  actions:
-  - data:
-      message: Hot water temperature is only {{ state_attr("climate.m5atom_dev_hot_water","current_temperature")
-        }}°C
-    action: notify.all_devices
-  mode: single
 - id: '1770386039832'
   alias: 'Alert: Kitchen Wall Moisture Increase'
   description: Pings phone if wall moisture rises significantly above house baseline
