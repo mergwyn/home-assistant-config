@@ -40,3 +40,13 @@ template:
           {{ (this.state | float(0)) + (delta if (0 <= dhw <= 0.5) else 0) }}
         attributes:
           last_clamp: "{{ states('sensor.ashp_clamp_energy') | float(0) }}"
+
+  - sensor:
+      - name: "Predbat Grid Power"
+        unique_id: predbat_grid_power
+        unit_of_measurement: W
+        device_class: power
+        state_class: measurement
+        state: >-
+          {{ states('sensor.solax_grid_export_power') | float(0)
+             - states('sensor.solax_grid_import_power') | float(0) }}
