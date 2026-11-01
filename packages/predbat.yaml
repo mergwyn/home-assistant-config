@@ -1,6 +1,6 @@
 ---
 # yamllint disable rule:line-length
-# Helpers to support the preheat package. These are not intended to be used directly.
+# Helpers to support the prebat package. These are not intended to be used directly.
 
 template:
   - trigger:
@@ -42,11 +42,32 @@ template:
           last_clamp: "{{ states('sensor.ashp_clamp_energy') | float(0) }}"
 
   - sensor:
-      - name: "Predbat Grid Power"
-        unique_id: predbat_grid_power
+      - name: "Solax battery power signed"
+        unique_id: solax_battery_power_signed
         unit_of_measurement: W
         device_class: power
         state_class: measurement
         state: >-
-          {{ states('sensor.solax_grid_export_power') | float(0)
-             - states('sensor.solax_grid_import_power') | float(0) }}
+          {{ states('sensor.solax_battery_output_energy') | float(0)
+             - states('sensor.solax_battery_input_energy') | float(0) }}
+
+      - name: "Solax timed charge start"
+        unique_id: solax_timed_charge_start
+        state: >-
+          {{ '%02d:%02d:00' | format(states('number.solax_timed_charge_start_hours') | int(0),
+                                      states('number.solax_timed_charge_start_minutes') | int(0)) }}
+      - name: "Solax timed charge end"
+        unique_id: solax_timed_charge_end
+        state: >-
+          {{ '%02d:%02d:00' | format(states('number.solax_timed_charge_end_hours') | int(0),
+                                      states('number.solax_timed_charge_end_minutes') | int(0)) }}
+      - name: "Solax timed discharge start"
+        unique_id: solax_timed_discharge_start
+        state: >-
+          {{ '%02d:%02d:00' | format(states('number.solax_timed_discharge_start_hours') | int(0),
+                                      states('number.solax_timed_discharge_start_minutes') | int(0)) }}
+      - name: "Solax timed discharge end"
+        unique_id: solax_timed_discharge_end
+        state: >-
+          {{ '%02d:%02d:00' | format(states('number.solax_timed_discharge_end_hours') | int(0),
+                                      states('number.solax_timed_discharge_end_minutes') | int(0)) }}
