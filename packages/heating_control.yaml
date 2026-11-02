@@ -11,6 +11,9 @@ template:
         entity_id: *boost
         to: "off"
         id: stop
+      - trigger: time
+        at: "23:30:00"
+        id: cheap_rate_start
     binary_sensor:
       - name: "Rolling target outside cheap slot"
         unique_id: rolling_target_outside_cheap_slot
