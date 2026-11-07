@@ -53,7 +53,7 @@ template:
         unique_id: template_sensor_emoncms_status_of_hot_water
         state_class: measurement
         state: >
-          {{ states('sensor.heating_hot_water_status') | int(0) }}
+          {{ states('sensor.heating_ashp_hot_water_status') | int(0) }}
 
       - name: EmonCMS Outside Temperature
         unique_id: template_sensor_emoncms_outside_temperature
