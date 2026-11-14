@@ -1,0 +1,167 @@
+# ASHP COP split: DHW vs space heating
+# Place in the packages directory, e.g. packages/ashp_cop_split.yaml
+
+template:
+  - binary_sensor:
+      - name: ASHP DHW Active
+        unique_id: template_binary_sensor_ashp_dhw_active
+        state: >
+          {{ states('sensor.heating_ashp_hot_water_status') | int(0) == 1 }}
+        availability: >
+          {{ states('sensor.heating_ashp_hot_water_status') | is_number }}
+
+  - sensor:
+      # Last hour (rolling)
+      - name: ASHP COP - Last Hour DHW
+        unique_id: template_sensor_cop_last_hour_dhw
+        state_class: measurement
+        icon: mdi:chart-bar
+        state: >
+          {% set g = states('sensor.ashp_last_hour_heat_dhw') | float(0) %}
+          {% set c = states('sensor.ashp_last_hour_energy_dhw') | float(0) %}
+          {{ 0 if g == 0 or c == 0 else [g / c, 8] | min | round(2) }}
+      - name: ASHP COP - Last Hour Heating
+        unique_id: template_sensor_cop_last_hour_heating
+        state_class: measurement
+        icon: mdi:chart-bar
+        state: >
+          {% set g = states('sensor.ashp_last_hour_heat_heating') | float(0) %}
+          {% set c = states('sensor.ashp_last_hour_energy_heating') | float(0) %}
+          {{ 0 if g == 0 or c == 0 else [g / c, 8] | min | round(2) }}
+
+      # Daily
+      - name: ASHP COP - Daily DHW
+        unique_id: template_sensor_cop_daily_dhw
+        state_class: measurement
+        icon: mdi:chart-bar
+        state: >
+          {% set g = states('sensor.ashp_heat_daily_dhw') | float(0) %}
+          {% set c = states('sensor.ashp_elec_daily_dhw') | float(0) %}
+          {{ 0 if g == 0 or c == 0 else [g / c, 8] | min | round(2) }}
+      - name: ASHP COP - Daily Heating
+        unique_id: template_sensor_cop_daily_heating
+        state_class: measurement
+        icon: mdi:chart-bar
+        state: >
+          {% set g = states('sensor.ashp_heat_daily_heating') | float(0) %}
+          {% set c = states('sensor.ashp_elec_daily_heating') | float(0) %}
+          {{ 0 if g == 0 or c == 0 else [g / c, 8] | min | round(2) }}
+
+      # Total
+      - name: ASHP COP - Total DHW
+        unique_id: template_sensor_cop_total_dhw
+        state_class: measurement
+        icon: mdi:chart-bar
+        state: >
+          {% set g = states('sensor.ashp_heat_total_dhw') | float(0) %}
+          {% set c = states('sensor.ashp_elec_total_dhw') | float(0) %}
+          {{ 0 if g == 0 or c == 0 else [g / c, 8] | min | round(2) }}
+      - name: ASHP COP - Total Heating
+        unique_id: template_sensor_cop_total_heating
+        state_class: measurement
+        icon: mdi:chart-bar
+        state: >
+          {% set g = states('sensor.ashp_heat_total_heating') | float(0) %}
+          {% set c = states('sensor.ashp_elec_total_heating') | float(0) %}
+          {{ 0 if g == 0 or c == 0 else [g / c, 8] | min | round(2) }}
+
+      # Instant (reuses the existing last-minute COP)
+      - name: ASHP COP - Instant DHW
+        unique_id: template_sensor_cop_instant_dhw
+        state_class: measurement
+        icon: mdi:chart-bar
+        availability: "{{ is_state('binary_sensor.ashp_dhw_active', 'on') }}"
+        state: "{{ states('sensor.ashp_cop_last_minute_clamp') | float(0) }}"
+      - name: ASHP COP - Instant Heating
+        unique_id: template_sensor_cop_instant_heating
+        state_class: measurement
+        icon: mdi:chart-bar
+        availability: "{{ is_state('binary_sensor.ashp_dhw_active', 'off') }}"
+        state: "{{ states('sensor.ashp_cop_last_minute_clamp') | float(0) }}"
+
+utility_meter:
+  # Heat produced
+  ashp_heat_daily:
+    source: sensor.m5atom_dev_total_produced_energy
+    cycle: daily
+    tariffs: [dhw, heating]
+  ashp_heat_total:
+    source: sensor.m5atom_dev_total_produced_energy
+    tariffs: [dhw, heating]
+
+  # Electricity consumed (clamp)
+  ashp_elec_daily:
+    source: sensor.ashp_clamp_energy
+    cycle: daily
+    tariffs: [dhw, heating]
+  ashp_elec_total:
+    source: sensor.ashp_clamp_energy
+    tariffs: [dhw, heating]
+
+sensor:
+  # Rolling last-hour change of the per-mode total meters
+  - platform: statistics
+    name: ASHP Last Hour Heat DHW
+    unique_id: statistics_sensor_ashp_last_hour_heat_dhw
+    entity_id: sensor.ashp_heat_total_dhw
+    state_characteristic: change
+    max_age:
+      hours: 1
+    sampling_size: 1000
+    keep_last_sample: true
+
+  - platform: statistics
+    name: ASHP Last Hour Heat Heating
+    unique_id: statistics_sensor_ashp_last_hour_heat_heating
+    entity_id: sensor.ashp_heat_total_heating
+    state_characteristic: change
+    max_age:
+      hours: 1
+    sampling_size: 1000
+    keep_last_sample: true
+
+  - platform: statistics
+    name: ASHP Last Hour Energy DHW
+    unique_id: statistics_sensor_ashp_last_hour_energy_dhw
+    entity_id: sensor.ashp_elec_total_dhw
+    state_characteristic: change
+    max_age:
+      hours: 1
+    sampling_size: 1000
+    keep_last_sample: true
+
+  - platform: statistics
+    name: ASHP Last Hour Energy Heating
+    unique_id: statistics_sensor_ashp_last_hour_energy_heating
+    entity_id: sensor.ashp_elec_total_heating
+    state_characteristic: change
+    max_age:
+      hours: 1
+    sampling_size: 1000
+    keep_last_sample: true
+
+automation:
+  - alias: ASHP COP tariff switch
+    mode: restart
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.ashp_dhw_active
+      - trigger: homeassistant
+        event: start
+    conditions:
+      - condition: not
+        conditions:
+          - condition: state
+            entity_id: binary_sensor.ashp_dhw_active
+            state: unavailable
+    actions:
+      - action: utility_meter.select_tariff
+        target:
+          entity_id:
+            - select.ashp_heat_daily
+            - select.ashp_heat_total
+            - select.ashp_elec_daily
+            - select.ashp_elec_total
+        data:
+          tariff: >
+            {{ 'dhw' if is_state('binary_sensor.ashp_dhw_active', 'on') else 'heating' }}
