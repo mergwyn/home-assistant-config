@@ -156,7 +156,7 @@ automation:
             entity_id: binary_sensor.ashp_dhw_active
             state: unavailable
     actions:
-      - action: utility_meter.select_tariff
+      - action: select.select_option
         target:
           entity_id:
             - select.ashp_heat_daily
@@ -164,5 +164,6 @@ automation:
             - select.ashp_elec_daily
             - select.ashp_elec_total
         data:
-          tariff: >
+          option: >
             {{ 'dhw' if is_state('binary_sensor.ashp_dhw_active', 'on') else 'heating' }}
+
