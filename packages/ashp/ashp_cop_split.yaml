@@ -141,7 +141,8 @@ sensor:
     keep_last_sample: true
 
 automation:
-  - alias: ASHP COP tariff switch
+  - id: ashp_cop_tariff_switch
+    alias: ASHP COP tariff switch
     mode: restart
     triggers:
       - trigger: state
