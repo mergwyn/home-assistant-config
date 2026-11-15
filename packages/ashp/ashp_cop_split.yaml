@@ -152,7 +152,7 @@ automation:
       - condition: not
         conditions:
           - condition: state
-            entity_id:binary_sensor.ashp_dhw_active
+            entity_id: binary_sensor.ashp_dhw_active
             state: unavailable
     actions:
       - action: utility_meter.select_tariff
