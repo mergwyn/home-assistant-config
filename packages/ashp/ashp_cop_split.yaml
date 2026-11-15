@@ -145,14 +145,14 @@ automation:
     mode: restart
     triggers:
       - trigger: state
-        entity_id: binary_sensor.ashp_dhw_active
+        entity_id: sensor.heating_ashp_hot_water_status
       - trigger: homeassistant
         event: start
     conditions:
       - condition: not
         conditions:
           - condition: state
-            entity_id: binary_sensor.ashp_dhw_active
+            entity_id: sensor.heating_ashp_hot_water_status
             state: unavailable
     actions:
       - action: utility_meter.select_tariff
@@ -164,4 +164,4 @@ automation:
             - select.ashp_elec_total
         data:
           tariff: >
-            {{ 'dhw' if is_state('binary_sensor.ashp_dhw_active', 'on') else 'heating' }}
+            {{ 'dhw' if is_state('sensor.heating_ashp_hot_water_status', '1') else 'heating' }}
