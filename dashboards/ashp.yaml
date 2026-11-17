@@ -17,6 +17,8 @@ views:
             name: Heating demand
           - entity: sensor.ashp_ufh_circuits_calling
             name: UFH circuits calling
+          - entity: sensor.ashp_rad_circuits_calling
+            name: Radiator circuits calling
           - entity: sensor.m5atom_dev_outdoor_temperature
             name: Outdoor temperature
           - entity: sensor.m5atom_dev_flow_temp_wl_target
