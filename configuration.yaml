@@ -25,3 +25,12 @@ template: !include_dir_merge_list entities/templates
 sensor: !include_dir_merge_list entities/sensors
 binary_sensor: !include_dir_merge_list entities/binary_sensors
 utility_meter: !include_dir_merge_named entities/utility_meters
+
+lovelace:
+  dashboards:
+    ashp-dashboard:
+      mode: yaml
+      title: ASHP
+      icon: mdi:heat-pump
+      show_in_sidebar: true
+      filename: dashboards/ashp.yaml

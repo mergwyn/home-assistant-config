@@ -1,0 +1,209 @@
+
+title: ASHP
+views:
+  - title: Overview
+    path: overview
+    icon: mdi:heat-pump
+    cards:
+      - type: entities
+        title: Heat pump status
+        show_header_toggle: false
+        entities:
+          - entity: binary_sensor.m5atom_dev_compressor_status
+            name: Compressor
+          - entity: binary_sensor.m5atom_dev_thermo_status
+            name: Thermostat demand
+          - entity: binary_sensor.ashp_heating_demand
+            name: Heating demand
+          - entity: sensor.ashp_ufh_circuits_calling
+            name: UFH circuits calling
+          - entity: sensor.m5atom_dev_outdoor_temperature
+            name: Outdoor temperature
+          - entity: sensor.m5atom_dev_flow_temp_wl_target
+            name: Water law target
+
+      - type: entities
+        title: Water temperatures
+        show_header_toggle: false
+        entities:
+          - entity: sensor.m5atom_dev_flow_temp_out
+            name: Flow temperature
+          - entity: sensor.m5atom_dev_flow_temp_return
+            name: Return temperature
+          - entity: sensor.m5atom_dev_flow_temp_delta
+            name: Flow / return delta
+          - entity: sensor.m5atom_dev_flow_rate_sensor
+            name: Flow rate
+
+      - type: entities
+        title: Performance now
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ashp_clamp_power
+            name: Electrical power
+          - entity: sensor.m5atom_dev_cop_instant
+            name: Instant COP
+          - entity: sensor.m5atom_dev_compressor_pwm
+            name: Compressor PWM
+          - entity: sensor.m5atom_dev_last_minute_heat_generated
+            name: Heat generated last minute
+          - entity: sensor.m5atom_dev_last_minute_power_consumed
+            name: Power consumed last minute
+
+      - type: history-graph
+        title: Heating activity — last 12 hours
+        hours_to_show: 12
+        entities:
+          - entity: binary_sensor.m5atom_dev_compressor_status
+            name: Compressor
+          - entity: binary_sensor.ashp_heating_demand
+            name: Heating demand
+
+      - type: history-graph
+        title: Flow and return temperatures — last 12 hours
+        hours_to_show: 12
+        entities:
+          - entity: sensor.m5atom_dev_flow_temp_out
+            name: Flow
+          - entity: sensor.m5atom_dev_flow_temp_return
+            name: Return
+          - entity: sensor.m5atom_dev_flow_temp_wl_target
+            name: Water law target
+
+  - title: Heating distribution
+    path: distribution
+    icon: mdi:home-thermometer
+    cards:
+      - type: entities
+        title: Downstairs UFH
+        show_header_toggle: false
+        entities:
+          - entity: climate.hall_thermostat
+            name: Hall
+          - entity: climate.living_room_thermostat
+            name: Living room
+          - entity: climate.family_room_thermostat
+            name: Family room
+          - entity: climate.office_thermostat
+            name: Office
+          - entity: sensor.ashp_ufh_circuits_calling
+            name: Circuits calling for heat
+
+      - type: entities
+        title: Upstairs
+        show_header_toggle: false
+        entities:
+          - entity: climate.landing_thermostat
+            name: Landing
+          - entity: binary_sensor.upstairs_heating_active
+            name: Upstairs heating active
+          - entity: sensor.heating_upstairs_mode
+            name: Upstairs heating mode
+          - entity: timer.heating_boost
+            name: Heating boost timer
+
+      - type: history-graph
+        title: Room temperatures — last 24 hours
+        hours_to_show: 24
+        entities:
+          - entity: sensor.hall_thermostat_local_temperature
+            name: Hall
+          - entity: sensor.living_room_thermostat_local_temperature
+            name: Living room
+          - entity: sensor.family_room_thermostat_local_temperature
+            name: Family room
+          - entity: sensor.office_thermostat_local_temperature
+            name: Office
+          - entity: sensor.landing_thermostat_local_temperature
+            name: Landing
+
+  - title: Heat pump
+    path: performance
+    icon: mdi:chart-line
+    cards:
+      - type: entities
+        title: Operating parameters
+        show_header_toggle: false
+        entities:
+          - entity: sensor.m5atom_dev_flow_temp_wl_target
+            name: Water law target
+          - entity: number.m5atom_dev_water_law_offset
+            name: Water law offset
+          - entity: number.m5atom_dev_pump_target_deltat
+            name: Pump target delta T
+          - entity: number.m5atom_dev_pump_control_factor
+            name: Pump control factor
+          - entity: select.m5atom_dev_pump_application
+            name: Pump application
+          - entity: select.m5atom_dev_water_law_for_heating
+            name: Water law mode
+
+      - type: entities
+        title: Water law configuration
+        show_header_toggle: false
+        entities:
+          - entity: number.m5atom_dev_water_law_outdoor_temp_high
+          - entity: number.m5atom_dev_water_law_outdoor_temp_low
+          - entity: number.m5atom_dev_water_law_wl1_flow_temp_high
+          - entity: number.m5atom_dev_water_law_wl1_flow_temp_low
+          - entity: number.m5atom_dev_water_law_wl2_flow_temp_high
+          - entity: number.m5atom_dev_water_law_wl2_flow_temp_low
+
+      - type: history-graph
+        title: Delta T and flow rate — last 24 hours
+        hours_to_show: 24
+        entities:
+          - entity: sensor.m5atom_dev_flow_temp_delta
+            name: Delta T
+          - entity: sensor.m5atom_dev_flow_rate_sensor
+            name: Flow rate
+
+      - type: history-graph
+        title: Compressor activity — last 24 hours
+        hours_to_show: 24
+        entities:
+          - entity: binary_sensor.m5atom_dev_compressor_status
+            name: Compressor
+          - entity: sensor.m5atom_dev_compressor_pwm
+            name: Compressor PWM
+
+  - title: Energy
+    path: energy
+    icon: mdi:lightning-bolt
+    cards:
+      - type: entities
+        title: Daily performance
+        show_header_toggle: false
+        entities:
+          - entity: sensor.m5atom_dev_daily_energy_consumed
+            name: Energy consumed
+          - entity: sensor.m5atom_dev_daily_heat_generated
+            name: Heat generated
+          - entity: sensor.m5atom_dev_cop_daily
+            name: Daily COP
+          - entity: sensor.ashp_clamp_daily_energy_consumed
+            name: Clamp energy consumed
+
+      - type: entities
+        title: Lifetime performance
+        show_header_toggle: false
+        entities:
+          - entity: sensor.m5atom_dev_total_consumed_energy
+            name: Total energy consumed
+          - entity: sensor.m5atom_dev_total_produced_energy
+            name: Total heat generated
+          - entity: sensor.m5atom_dev_cop_total
+            name: Lifetime COP
+
+      - type: entities
+        title: Hot water
+        show_header_toggle: false
+        entities:
+          - entity: climate.m5atom_dev_hot_water
+            name: Hot water
+          - entity: switch.m5atom_dev_dhw_enable
+            name: DHW enabled
+          - entity: select.m5atom_dev_hot_water_mode
+            name: DHW mode
+          - entity: sensor.m5atom_dev_3_way_valve
+            name: Three-way valve

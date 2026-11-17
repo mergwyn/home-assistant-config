@@ -1,0 +1,48 @@
+
+template:
+  - binary_sensor:
+      - name: ASHP Heating Demand
+        unique_id: ashp_heating_demand
+        device_class: heat
+        state: >
+          {{ expand(
+            'climate.hall_thermostat',
+            'climate.living_room_thermostat',
+            'climate.family_room_thermostat',
+            'climate.office_thermostat',
+            'climate.landing_thermostat'
+          ) | selectattr('attributes.hvac_action', 'eq', 'heating')
+            | list | count > 0 }}
+
+  - sensor:
+      - name: ASHP UFH Circuits Calling
+        unique_id: ashp_ufh_circuits_calling
+        icon: mdi:heating-coil
+        state: >
+          {{ expand(
+            'climate.hall_thermostat',
+            'climate.living_room_thermostat',
+            'climate.family_room_thermostat',
+            'climate.office_thermostat'
+          ) | selectattr('attributes.hvac_action', 'eq', 'heating')
+            | list | count }}
+        unit_of_measurement: circuits
+        state_class: measurement
+  - sensor:
+      - name: ASHP RAD Circuits Calling
+        unique_id: ashp_rad_circuits_calling
+        icon: mdi:heating-coil
+        state: >
+          {{ expand(
+            'climate.landing_thermostat'
+          ) | selectattr('attributes.hvac_action', 'eq', 'heating')
+            | list | count }}
+        unit_of_measurement: circuits
+        state_class: measurement
+
+utility_meter:
+  ahsp_energy_daily:
+    source: sensor.ashp_clamp_energy
+    name: ASHP Daily Energy Consumed Clamp
+    cycle: daily
+    unique_id: meter_sensor_clamp_daily_energy_consumed
