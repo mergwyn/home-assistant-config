@@ -27,6 +27,10 @@ emoncms_history:
 #     - sensor.emoncms_flow_rate
 #     - sensor.emoncms_flow_temperature
 #     - sensor.emoncms_return_temperature
+#
+# TODO add
+#   - defrost status
+#   - room temperature
 
 # This list of sensors provide a alias for the emoncms feed to allo
 
