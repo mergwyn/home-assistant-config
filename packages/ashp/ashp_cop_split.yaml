@@ -72,7 +72,7 @@ template:
         icon: mdi:chart-bar
         state: >
           {% if is_state('binary_sensor.ashp_dhw_active', 'on') %}
-            {{ states('sensor.m5atom_dev_cop_instant') | float(0) }}
+            {{ states('sensor.m5atom_dev_cop_instant') | float(0) | round(2) }}
           {% else %}
             0.0
           {% endif %}
@@ -83,7 +83,7 @@ template:
         icon: mdi:chart-bar
         state: >
           {% if is_state('binary_sensor.ashp_dhw_active', 'off') %}
-            {{ states('sensor.m5atom_dev_cop_instant') | float(0) }}
+            {{ states('sensor.m5atom_dev_cop_instant') | float(0) | round(2) }}
           {% else %}
             0.0
           {% endif %}
