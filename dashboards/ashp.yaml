@@ -49,7 +49,7 @@ views:
             name: Compressor PWM
           - entity: sensor.m5atom_dev_last_minute_heat_generated
             name: Heat generated last minute
-          - entity: sensor.m5atom_dev_last_minute_power_consumed
+          - entity: sensor.ashp_power_consumed_last_minute_clamp
             name: Power consumed last minute
 
       - type: history-graph
