@@ -80,6 +80,8 @@ views:
         title: Downstairs UFH
         show_header_toggle: false
         entities:
+          - entity: climate.downstairs
+            name: Downstairs group
           - entity: climate.hall_thermostat
             name: Hall
           - entity: climate.living_room_thermostat
@@ -89,7 +91,9 @@ views:
           - entity: climate.office_thermostat
             name: Office
           - entity: sensor.ashp_ufh_circuits_calling
-            name: Circuits calling for heat
+            name: Circuits calling for heatA
+          - entity: sensor.heating_downstairs_mode
+            name: Downstairs heating mode
 
       - type: entities
         title: Upstairs
@@ -177,24 +181,22 @@ views:
         title: Daily performance
         show_header_toggle: false
         entities:
-          - entity: sensor.m5atom_dev_daily_energy_consumed
+          - entity: sensor.ashp_daily_energy_consumed_clamp
             name: Energy consumed
           - entity: sensor.m5atom_dev_daily_heat_generated
             name: Heat generated
-          - entity: sensor.m5atom_dev_cop_daily
+          - entity: sensor.ashp_cop_daily_clamp
             name: Daily COP
-          - entity: sensor.ashp_clamp_daily_energy_consumed
-            name: Clamp energy consumed
 
       - type: entities
         title: Lifetime performance
         show_header_toggle: false
         entities:
-          - entity: sensor.m5atom_dev_total_consumed_energy
+          - entity: sensor.ashp_total_energy_consumed_adjusted
             name: Total energy consumed
           - entity: sensor.m5atom_dev_total_produced_energy
             name: Total heat generated
-          - entity: sensor.m5atom_dev_cop_total
+          - entity: sensor.ashp_cop_total
             name: Lifetime COP
 
       - type: entities

@@ -50,6 +50,15 @@ template:
           {{ is_state('binary_sensor.target_timeframes_octopus_energy_import_hot_water_nightly', 'on')
              or is_state('timer.dhw_boost', 'active')
              or is_state('binary_sensor.octopus_power_up_active', 'on') }}
+  - sensor:
+      - name: "Heating downstairs mode"
+        unique_id: heating_downstairs_mode
+        state: >
+          {% if is_state('schedule.heating_down_boost', 'on')
+             or is_state('binary_sensor.octopus_power_up_active', 'on')
+             or is_state('timer.heating_boost', 'active') %}boost
+          {% elif is_state('schedule.heating_down_eco', 'on') %}eco
+          {% else %}comfort{% endif %}
 
   - sensor:
       - name: "Heating upstairs mode"
