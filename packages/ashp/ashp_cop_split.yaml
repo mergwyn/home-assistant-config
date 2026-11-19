@@ -70,14 +70,23 @@ template:
         unique_id: template_sensor_cop_instant_dhw
         state_class: measurement
         icon: mdi:chart-bar
-        availability: "{{ is_state('binary_sensor.ashp_dhw_active', 'on') }}"
-        state: "{{ states('sensor.m5atom_dev_cop_instant') | float(0) | default(0) }}"
+        state: >
+          {% if is_state('binary_sensor.ashp_dhw_active', 'on') %}
+            {{ states('sensor.m5atom_dev_cop_instant') | float(0) }}
+          {% else %}
+            0
+          {% endif %}
+
       - name: ASHP COP - Instant Heating
         unique_id: template_sensor_cop_instant_heating
         state_class: measurement
         icon: mdi:chart-bar
-        availability: "{{ is_state('binary_sensor.ashp_dhw_active', 'off') }}"
-        state: "{{ states('sensor.m5atom_dev_cop_instant') | float(0) | default(0) }}"
+        state: >
+          {% if is_state('binary_sensor.ashp_dhw_active', 'off') %}
+            {{ states('sensor.m5atom_dev_cop_instant') | float(0) }}
+          {% else %}
+            0
+          {% endif %}
 
 utility_meter:
   # Heat produced
