@@ -16,18 +16,6 @@ emoncms_history:
   url: https://emoncms.org
   inputnode: 19
   whitelist:
-    # - sensor.samsung_ashp_dhw_status
-    # - sensor.samsung_ashp_zone_heating_status
-    # - sensor.status_of_heating_circuit
-    # - sensor.samsung_ashp_heat_pump_outdoor_temperature
-    # - sensor.samsung_ashp_heat_pump_heat_generated_total
-    # - sensor.samsung_ashp_heat_pump_heat_generated_last_min
-    # - sensor.samsung_ashp_flow_rate
-    # - sensor.samsung_ashp_flow_temp
-    # - sensor.samsung_ashp_flow_temp_return
-    # - sensor.ashp_power_consumed_last_minute_clamp
-    # - sensor.ashp_total_energy_consumed_adjusted
-
     - sensor.emoncms_status_of_hot_water_circuit
     - sensor.emoncms_status_of_heating_circuit
     - sensor.emoncms_outside_temperature
@@ -38,92 +26,14 @@ emoncms_history:
     - sensor.emoncms_flow_rate
     - sensor.emoncms_flow_temperature
     - sensor.emoncms_return_temperature
+    - sensor.emoncms_defrost_active
+    - sensor.emoncms_room_temperature
 
 # TODO add
 #   - defrost status
 #   - room temperature
 
 template:
-  # Old sensors
-  - sensor:
-      - name: Status of Heating circuit
-        unique_id: template_sensor_old_emoncms_status_of_heating_circuit
-        state_class: measurement
-        state: >
-          {{ states('sensor.m5atom_dev_3_way_valve') | int(0) }}
-
-      - name: Status of Hot Water circuit
-        unique_id: template_sensor_old_emoncms_status_of_hot_water
-        state_class: measurement
-        state: >
-          {{ states('sensor.m5atom_dev_zone_heating_status') | int(0) }}
-
-      - name: Outside Temperature
-        unique_id: template_sensor_old_emoncms_outside_temperature
-        state_class: measurement
-        device_class: temperature
-        unit_of_measurement: °C
-        state: >
-          {{ states('sensor.m5atom_dev_outdoor_temperature') | float(0) }}
-
-      - name: Cumulative electric use kWh
-        unique_id: template_sensor_old_emoncms_cumulative_electric_use_kwh
-        state_class: total_increasing
-        device_class: energy
-        unit_of_measurement: kWh
-        state: >
-          {{ states('sensor.ashp_total_energy_consumed_adjusted') | float(0) }}
-
-      - name: Electric use in watts
-        unique_id: template_sensor_old_emoncms_electric_use_watts
-        state_class: measurement
-        device_class: power
-        unit_of_measurement: W
-        state: >
-          {{ states('sensor.ashp_power_consumed_last_minute_clamp') | float(0) }}
-
-      - name: Cumulative heat output in kWh
-        unique_id: template_sensor_old_emoncms_cumulative_heat_output_kwh
-        state_class: total_increasing
-        device_class: energy
-        unit_of_measurement: kWh
-        state: >
-          {{ states('sensor.m5atom_dev_total_produced_energy') | float(0) }}
-
-      - name: Heat output in watts
-        unique_id: template_sensor_old_emoncms_heat_output_watts
-        state_class: measurement
-        device_class: power
-        unit_of_measurement: W
-        state: >
-          {{ states('sensor.m5atom_dev_last_minute_heat_generated') | float(0) }}
-
-      - name: Flow Rate
-        unique_id: template_sensor_old_emoncms_flow_rate
-        state_class: measurement
-        unit_of_measurement: L/min
-        device_class: volume_flow_rate
-        icon: mdi:water-circle
-        state: >
-          {{ states('sensor.m5atom_dev_flow_rate_sensor') | float(0) }}
-
-      - name: Flow temperature
-        unique_id: template_sensor_old_emoncms_flow_temperature
-        state_class: measurement
-        device_class: temperature
-        unit_of_measurement: °C
-        state: >
-          {{ states('sensor.m5atom_dev_flow_temp_out') | float(0) }}
-
-      - name: Return temperature
-        unique_id: template_sensor_old_emoncms_return_temperature
-        state_class: measurement
-        device_class: temperature
-        unit_of_measurement: °C
-        state: >
-          {{ states('sensor.m5atom_dev_flow_temp_return') | float(0) }}
-
-  # New sensors
   - sensor:
       - name: EmonCMS Status of Heating circuit
         unique_id: template_sensor_emoncms_status_of_heating_circuit
@@ -201,3 +111,17 @@ template:
         unit_of_measurement: °C
         state: >
           {{ states('sensor.m5atom_dev_flow_temp_return') | float(0) }}
+
+      - name: EmonCMS Defrost Active
+        unique_id: template_sensor_emoncms_defrost_active
+        state_class: measurement
+        state: >
+          {{ states('binary_sensor.heating_ashp_defrost_active') | float(0) }}
+
+      - name: EmonCMS Room temperature
+        unique_id: template_sensor_emoncms_room_temperature
+        state_class: measurement
+        device_class: temperature
+        unit_of_measurement: °C
+        state: >
+          {{ state_attr('climate.downstairs', 'current_temperature')  | float(0) }}
