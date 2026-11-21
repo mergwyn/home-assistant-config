@@ -25,6 +25,23 @@ views:
             name: Water law target
 
       - type: entities
+        title: Room heating demand
+        show_header_toggle: false
+        entities:
+          - entity: climate.hall_thermostat
+            name: Hall
+          - entity: climate.living_room_thermostat
+            name: Living room
+          - entity: climate.family_room_thermostat
+            name: Family room
+          - entity: climate.office_thermostat
+            name: Office
+          - entity: climate.landing_thermostat
+            name: Landing
+          - entity: climate.downstairs
+            name: Downstairs
+
+      - type: entities
         title: Water temperatures
         show_header_toggle: false
         entities:
@@ -91,7 +108,7 @@ views:
           - entity: climate.office_thermostat
             name: Office
           - entity: sensor.ashp_ufh_circuits_calling
-            name: Circuits calling for heatA
+            name: Circuits calling for heat
           - entity: sensor.heating_downstairs_mode
             name: Downstairs heating mode
 
@@ -173,6 +190,16 @@ views:
           - entity: sensor.m5atom_dev_compressor_pwm
             name: Compressor PWM
 
+      - type: history-graph
+        title: Heat pump performance — last 24 hours
+        hours_to_show: 24
+        entities:
+          - entity: sensor.ashp_clamp_power
+            name: Electrical power
+          - entity: sensor.m5atom_dev_cop_instant
+            name: Instant COP
+          - entity: sensor.m5atom_dev_flow_temp_delta
+            name: Delta T
   - title: Energy
     path: energy
     icon: mdi:lightning-bolt
