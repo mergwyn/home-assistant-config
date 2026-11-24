@@ -50,21 +50,27 @@ template:
       - name: "ASHP COP Rolling 6 min"
         unique_id: ashp_cop_rolling_6_min
         state_class: measurement
-        availability: >
-          {{ states('sensor.ashp_elec_change_6_min') | float(0) >= 0.02
-             and states('sensor.ashp_heat_change_6_min') | float(-1) >= 0 }}
         state: >
           {% set heat = states('sensor.ashp_heat_change_6_min') | float(0) %}
           {% set elec = states('sensor.ashp_elec_change_6_min') | float(0) %}
-          {{ [heat / elec, 8] | min | round(2) }}
+          {% if elec >= 0.02 and heat >= 0 %}
+            {{ [heat / elec, 8] | min | round(2) }}
+          {% elif this.state in ['unknown', 'unavailable'] %}
+            0
+          {% else %}
+            {{ this.state }}
+          {% endif %}
 
       - name: "ASHP COP Rolling 12 min"
         unique_id: ashp_cop_rolling_12_min
         state_class: measurement
-        availability: >
-          {{ states('sensor.ashp_elec_change_12_min') | float(0) >= 0.04
-             and states('sensor.ashp_heat_change_12_min') | float(-1) >= 0 }}
         state: >
           {% set heat = states('sensor.ashp_heat_change_12_min') | float(0) %}
           {% set elec = states('sensor.ashp_elec_change_12_min') | float(0) %}
-          {{ [heat / elec, 8] | min | round(2) }}
+          {% if elec >= 0.04 and heat >= 0 %}
+            {{ [heat / elec, 8] | min | round(2) }}
+          {% elif this.state in ['unknown', 'unavailable'] %}
+            0
+          {% else %}
+            {{ this.state }}
+          {% endif %}
