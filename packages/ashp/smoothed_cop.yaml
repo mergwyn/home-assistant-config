@@ -6,7 +6,7 @@ sensor:
   # --- 6 minute deltas ---
   - platform: statistics
     name: "ASHP heat change 6 min"
-    unique_id: ashp_heat_change_6min
+    unique_id: ashp_heat_change_6_min
     entity_id: sensor.m5atom_dev_total_produced_energy
     state_characteristic: change
     max_age:
@@ -16,7 +16,7 @@ sensor:
 
   - platform: statistics
     name: "ASHP elec change 6 min"
-    unique_id: ashp_elec_change_6min
+    unique_id: ashp_elec_change_6_min
     entity_id: sensor.ashp_total_energy_consumed_adjusted
     state_characteristic: change
     max_age:
@@ -27,7 +27,7 @@ sensor:
   # --- 12 minute deltas ---
   - platform: statistics
     name: "ASHP heat change 12 min"
-    unique_id: ashp_heat_change_12min
+    unique_id: ashp_heat_change_12_min
     entity_id: ssensor.m5atom_dev_total_produced_energy
     state_characteristic: change
     max_age:
@@ -37,7 +37,7 @@ sensor:
 
   - platform: statistics
     name: "ASHP elec change 12 min"
-    unique_id: ashp_elec_change_12min
+    unique_id: ashp_elec_change_12_min
     entity_id: sensor.ashp_total_energy_consumed_adjusted
     state_characteristic: change
     max_age:
@@ -48,23 +48,23 @@ sensor:
 template:
   - sensor:
       - name: "ASHP COP Rolling 6 min"
-        unique_id: ashp_cop_rolling_6min
+        unique_id: ashp_cop_rolling_6_min
         state_class: measurement
         availability: >
-          {{ states('sensor.ashp_elec_change_6min') | float(0) >= 0.02
-             and states('sensor.ashp_heat_change_6min') | float(-1) >= 0 }}
+          {{ states('sensor.ashp_elec_change_6_min') | float(0) >= 0.02
+             and states('sensor.ashp_heat_change_6_min') | float(-1) >= 0 }}
         state: >
-          {% set heat = states('sensor.ashp_heat_change_6min') | float(0) %}
-          {% set elec = states('sensor.ashp_elec_change_6min') | float(0) %}
+          {% set heat = states('sensor.ashp_heat_change_6_min') | float(0) %}
+          {% set elec = states('sensor.ashp_elec_change_6_min') | float(0) %}
           {{ [heat / elec, 8] | min | round(2) }}
 
       - name: "ASHP COP Rolling 12 min"
-        unique_id: ashp_cop_rolling_12min
+        unique_id: ashp_cop_rolling_12_min
         state_class: measurement
         availability: >
-          {{ states('sensor.ashp_elec_change_12min') | float(0) >= 0.04
-             and states('sensor.ashp_heat_change_12min') | float(-1) >= 0 }}
+          {{ states('sensor.ashp_elec_change_12_min') | float(0) >= 0.04
+             and states('sensor.ashp_heat_change_12_min') | float(-1) >= 0 }}
         state: >
-          {% set heat = states('sensor.ashp_heat_change_12min') | float(0) %}
-          {% set elec = states('sensor.ashp_elec_change_12min') | float(0) %}
+          {% set heat = states('sensor.ashp_heat_change_12_min') | float(0) %}
+          {% set elec = states('sensor.ashp_elec_change_12_min') | float(0) %}
           {{ [heat / elec, 8] | min | round(2) }}
