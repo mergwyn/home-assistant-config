@@ -1,187 +1,134 @@
----
-# packages/heating_helpers.yaml
-
-input_number:
-  downstairs_boost:
-    name: Downstairs Boost Temperature
-    min: 7
-    max: 30
-    step: 0.5
-    unit_of_measurement: °C
-    icon: mdi:thermometer-plus
-
-  downstairs_comfort:
-    name: Downstairs Comfort Temperature
-    min: 7
-    max: 30
-    step: 0.5
-    unit_of_measurement: °C
-    icon: mdi:thermometer
-
-  downstairs_eco:
-    name: Downstairs Eco Temperature
-    min: 7
-    max: 30
-    step: 0.5
-    unit_of_measurement: °C
-    icon: mdi:leaf
-
-  landing_thermostat_boost:
-    name: Upstairs Boost Temperature
-    min: 7
-    max: 30
-    step: 0.5
-    unit_of_measurement: °C
-    icon: mdi:thermometer-plus
-
-  landing_thermostat_comfort:
-    name: Upstairs Comfort Temperature
-    min: 7
-    max: 30
-    step: 0.5
-    unit_of_measurement: °C
-    icon: mdi:thermometer
-
-  landing_thermostat_eco:
-    name: Upstairs Eco Temperature
-    min: 7
-    max: 30
-    step: 0.5
-    unit_of_measurement: °C
-    icon: mdi:leaf
-
+# ---
 template:
   - binary_sensor:
-      - name: "ASHP space heating active"
-        unique_id: ashp_space_heating_active
-        device_class: heat
-        state: "{{ states('sensor.m5atom_dev_zone_heating_status') | float(0) > 0 }}"
+    - name: Upstairs Heating Active
+      unique_id: template_binary_sensor_upstairs_heating_active
+      icon: mdi:toggle-switch
+      availability: >
+        {{
+        states("climate.landing_thermostat") != "unavailable"
+        and states("climate.landing_thermostat") != "unknown"
+        and states("climate.downstairs") != "unavailable"
+        and states("climate.downstairs") != "unknown"
+        }}
+      state: >
+        {{ state_attr('climate.landing_thermostat', 'hvac_action') == 'heating'
+        and state_attr('climate.downstairs', 'hvac_action') == 'idle' }}
+
   - sensor:
-      - name: "Downstairs target temperature"
-        unique_id: downstairs_target_temperature
-        unit_of_measurement: "°C"
-        device_class: temperature
-        state_class: measurement
-        icon: mdi:thermometer
-        state: "{{ state_attr('climate.downstairs', 'temperature') }}"
-        availability: "{{ state_attr('climate.downstairs', 'temperature') is not none }}"
+    - name: ASHP Total Energy Consumed Adjusted
+      unique_id: template_sensor_total_energy_consumed_adjusted
+      state_class: total_increasing
+      device_class: energy
+      unit_of_measurement: kWh
+      availability: >
+        {{ states("sensor.ashp_clamp_energy") != "unavailable"
+        and states("sensor.ashp_clamp_energy") != "unknown" }}
+      state: >
+        {{ (states('sensor.ashp_clamp_energy') | float(0) - 604.930 + 13254.418) | float(0) }}
+
+
   - sensor:
-      - name: Downstairs Average Temperature
-        unique_id: downstairs_average_temperature
-        unit_of_measurement: °C
-        device_class: temperature
-        state: "{{ state_attr('climate.downstairs', 'current_temperature') | float(0) }}"
+    - name: ASHP COP - Daily Clamp
+      unique_id: template_sensor_cop_daily_clamp
+      state_class: measurement
+      icon: mdi:chart-bar
+      state: >
+        {% set generated = states('sensor.m5atom_dev_daily_heat_generated') | float(0) %}
+        {% set consumed = states('sensor.ashp_daily_energy_consumed_clamp') | float(0) %}
+        {% if generated == 0 or consumed == 0 -%}{{ float(0) }}{% else -%}
+        {{ [generated / consumed, 8] | min | round(2) | float(0)}}
+        {% endif -%}
 
-      - name: Downstairs Average Humidity
-        unique_id: downstairs_average_humidity
-        unit_of_measurement: '%'
-        device_class: humidity
-        state: "{{ state_attr('climate.downstairs', 'current_humidity') | float(0) }}"
+  - sensor:
+    - name: ASHP COP - Last Hour Clamp
+      unique_id: template_sensor_cop_last_hour
+      state_class: measurement
+      icon: mdi:chart-bar
+      state: >
+        {% set generated = states('sensor.ashp_last_hour_heat_produced_esp') | float(0) %}
+        {% set consumed = states('sensor.ashp_last_hour_energy_consumed_clamp') | float(0) %}
+        {% if generated == 0 or consumed == 0 -%}0{% else -%}
+        {{ [generated / consumed, 8] | min | round(2) | float(0)}}
+        {% endif -%}
 
-automation:
-  - alias: Initialise Heating Helper Defaults
-    trigger:
-      - platform: homeassistant
-        event: start
-    action:
-      - alias: Downstairs Boost
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.downstairs_boost
-                state: unknown
-              - condition: state
-                entity_id: input_number.downstairs_boost
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.downstairs_boost
-            data:
-              value: 22.5
+  - sensor:
+    - name: ASHP COP - Last Minute Clamp
+      unique_id: template_sensor_cop_last_min
+      state_class: measurement
+      icon: mdi:chart-bar
+      state: >
+        {% set generated = states('sensor.m5atom_dev_last_minute_heat_generated') | float(0) %}
+        {% set consumed = states('sensor.ashp_power_consumed_last_minute_clamp') | float(0) %}
+        {% if generated == 0 or consumed == 0 -%}0{% else -%}
+        {{ [generated / consumed, 8] | min | round(2) | float(0)}}
+        {% endif -%}
 
-      - alias: Downstairs Comfort
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.downstairs_comfort
-                state: unknown
-              - condition: state
-                entity_id: input_number.downstairs_comfort
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.downstairs_comfort
-            data:
-              value: 21
+  - sensor:
+    - name: ASHP COP - Total
+      unique_id: template_sensor_cop_total
+      state_class: measurement
+      icon: mdi:chart-bar
+      state: >
+        {% set generated = states('sensor.m5atom_dev_total_produced_energy') | float(0) %}
+        {% set consumed = states('sensor.ashp_total_energy_consumed_adjusted') | float(0) %}
+        {% if generated == 0 or consumed == 0 -%}0{% else -%}
+        {{ [generated / consumed, 8] | min | round(2) | float(0)}}
+        {% endif -%}
 
-      - alias: Downstairs Eco
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.downstairs_eco
-                state: unknown
-              - condition: state
-                entity_id: input_number.downstairs_eco
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.downstairs_eco
-            data:
-              value: 19
+  # Temperature sensors for climate
+  # - sensor:
+  #   - name: Landing temperature
+  #     unique_id: template_sensor_landing_thermostemperature
+  #     state_class: measurement
+  #     device_class: temperature
+  #     unit_of_measurement: °C
+  #     availability: >
+  #       {{ states("climate.landing") != "unavailable"
+  #       and states("climate.landing") != "unknown" }}
+  #     state: >
+  #       {{ state_attr('climate.landing', 'current_temperature') | float(0) | round(1) }}
 
-      - alias: Upstairs Boost
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.landing_thermostat_boost
-                state: unknown
-              - condition: state
-                entity_id: input_number.landing_thermostat_boost
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.landing_thermostat_boost
-            data:
-              value: 20.5
-
-      - alias: Upstairs Comfort
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.landing_thermostat_comfort
-                state: unknown
-              - condition: state
-                entity_id: input_number.landing_thermostat_comfort
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.landing_thermostat_comfort
-            data:
-              value: 19
-
-      - alias: Upstairs Eco
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.landing_thermostat_eco
-                state: unknown
-              - condition: state
-                entity_id: input_number.landing_thermostat_eco
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.landing_thermostat_eco
-            data:
-              value: 17.5
+  #  - name: Office temperature
+  #    unique_id: template_sensor_office_temperature
+  #    state_class: measurement
+  #    device_class: temperature
+  #    unit_of_measurement: °C
+  #    availability: >
+  #      {{ states("climate.office") != "unavailable"
+  #      and states("climate.office") != "unknown" }}
+  #    state: >
+  #      {{ state_attr('climate.office', 'current_temperature') | float(0) | round(1) }}
+  #
+  #  - name: Family room temperature
+  #    unique_id: template_sensor_family_room_temperature
+  #    state_class: measurement
+  #    device_class: temperature
+  #    unit_of_measurement: °C
+  #    availability: >
+  #      {{ states("climate.family_room") != "unavailable"
+  #      and states("climate.family_room") != "unknown" }}
+  #    state: >
+  #      {{ state_attr('climate.family_room', 'current_temperature') | float(0) | round(1) }}
+  #
+  #  - name: Living room temperature
+  #    unique_id: template_sensor_living_room_temperature
+  #    state_class: measurement
+  #    device_class: temperature
+  #    unit_of_measurement: °C
+  #    availability: >
+  #      {{ states("climate.living_room") != "unavailable"
+  #      and states("climate.living_room") != "unknown" }}
+  #    state: >
+  #      {{ state_attr('climate.living_room', 'current_temperature') | float(0) | round(1) }}
+  #
+  #  - name: Hall temperature
+  #    unique_id: template_sensor_hall_temperature
+  #    state_class: measurement
+  #    device_class: temperature
+  #    unit_of_measurement: °C
+  #    availability: >
+  #      {{ states("climate.hall") != "unavailable"
+  #      and states("climate.hall") != "unknown" }}
+  #    state: >
+  #      {{ state_attr('climate.hall', 'current_temperature') | float(0) | round(1) }}
