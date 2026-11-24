@@ -1,0 +1,55 @@
+---
+template:
+    - trigger:
+        - platform: time_pattern
+          minutes: /30
+        - platform: homeassistant
+          event: start
+      action:
+        - action: weather.get_forecasts
+          target:
+            entity_id: weather.home
+          data:
+            type: daily
+          # This variable holds the result of the weather service call
+          response_variable: daily_data
+      sensor:
+        - name: Open Meteo Day Total Precipitation
+          unique_id: open_meteo_daily_rain_total
+          unit_of_measurement: mm
+          device_class: precipitation
+          state_class: total_increasing
+          # [0] targets 'today'. Use | float(0) to ensure the chart gets a number
+          state: "{{ daily_data['weather.home'].forecast[0].precipitation | float(0) }}"
+
+
+    - trigger:
+        - platform: time
+          at: "23:59:59"
+      sensor:
+        - name: Yesterday Rainfall
+          unique_id: yesterday_rainfall
+          unit_of_measurement: mm
+          device_class: precipitation
+          state_class: measurement
+          # Captures the value of your forecast sensor right before the day ends
+          state: "{{ states('sensor.open_meteo_day_total_precipitation') | float(0) }}"
+
+    - sensor:
+        - name: Open-Meteo Wind Speed MPH
+          unit_of_measurement: mph
+          device_class: wind_speed
+          state_class: measurement
+          # Math: km/h / 1.609 = mph
+          state: "{{ (state_attr('weather.home', 'wind_speed') | float(0) / 1.609) | round(1) }}"
+
+        - name: Open-Meteo Wind Gust MPH
+          unit_of_measurement: mph
+          device_class: wind_speed
+          state_class: measurement
+          state: "{{ (state_attr('weather.home', 'wind_gust_speed') | float(0) / 1.609) | round(1) }}"
+
+        - name: Open-Meteo Wind Direction
+          unit_of_measurement: °
+          state_class: measurement
+          state: "{{ state_attr('weather.home', 'wind_bearing') }}"
