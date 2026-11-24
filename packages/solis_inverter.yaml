@@ -1,4 +1,5 @@
-
+---
+input_number:
   solis_discharge_current_backup:
     name: Solis Discharge Current Backup
     initial: 0
