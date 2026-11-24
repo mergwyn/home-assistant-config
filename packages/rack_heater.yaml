@@ -1,5 +1,5 @@
 ---
-climates:
+climate:
   - platform: generic_thermostat
     name: Solar Heater
     heater: switch.heater
