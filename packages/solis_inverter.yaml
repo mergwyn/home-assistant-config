@@ -7,3 +7,56 @@ input_number:
     max: 20
     step: 0.1
     mode: box
+
+template:
+  - sensor:
+    - name: Solax Grid Export Power
+      unique_id: solax_grid_export_power
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      state: >-
+        {{max(states('sensor.solax_meter_active_power') | float(0),0)}}
+
+    - name: Solax Grid Import Power
+      unique_id: solax_grid_import_power
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      state: >-
+        {{max(-(states('sensor.solax_meter_active_power') | float(0)),0)}}
+
+  # combine solis battery sensors into a single entity, +v discharging, -ve charging
+    - name: Battery Power
+      unique_id: template_sensor_battery_power
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      availability: >
+        {{
+        states("sensor.solax_battery_output_energy") != "unavailable"
+        and states("sensor.solax_battery_output_energy") != "unknown"
+        and states("sensor.solax_battery_input_energy") != "unavailable"
+        and states("sensor.solax_battery_input_energy") != "unknown"
+        }}
+      state: >
+       {{ (states('sensor.solax_battery_output_energy') | float +
+        (states('sensor.solax_battery_input_energy') | float * -1)) | float}}
+
+
+  # Sum panels to get Solar production
+    - name: Solis DV solar production
+      unique_id: template_sensor_solis_solar_production
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      availability: >
+        {{
+        states("sensor.solax_pv_power_1") != "unavailable"
+        and states("sensor.solax_pv_power_1") != "unknown"
+        and states("sensor.solax_pv_power_2") != "unavailable"
+        and states("sensor.solax_pv_power_2") != "unknown"
+        }}
+      state: >
+        {{ (states('sensor.solax_pv_power_1') | float(0) +
+        (states('sensor.solax_pv_power_2') | float(0))) | float(0)}}
