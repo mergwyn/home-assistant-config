@@ -1,0 +1,70 @@
+# Replace these with your actual cumulative kWh entities:
+#   HEAT = sensor.ashp_heat_energy_total   (m5atom_dev, heat produced)
+#   ELEC = sensor.ashp_clamp_energy_total  (Zigbee clamp, energy used)
+
+sensor:
+  # --- 6 minute deltas ---
+  - platform: statistics
+    name: "ASHP heat change 6 min"
+    unique_id: ashp_heat_change_6min
+    entity_id: sensor.ashp_heat_energy_total
+    state_characteristic: change
+    max_age:
+      minutes: 6
+    sampling_size: 60
+    precision: 3
+
+  - platform: statistics
+    name: "ASHP elec change 6 min"
+    unique_id: ashp_elec_change_6min
+    entity_id: sensor.ashp_clamp_energy_total
+    state_characteristic: change
+    max_age:
+      minutes: 6
+    sampling_size: 60
+    precision: 3
+
+  # --- 12 minute deltas ---
+  - platform: statistics
+    name: "ASHP heat change 12 min"
+    unique_id: ashp_heat_change_12min
+    entity_id: sensor.ashp_heat_energy_total
+    state_characteristic: change
+    max_age:
+      minutes: 12
+    sampling_size: 120
+    precision: 3
+
+  - platform: statistics
+    name: "ASHP elec change 12 min"
+    unique_id: ashp_elec_change_12min
+    entity_id: sensor.ashp_clamp_energy_total
+    state_characteristic: change
+    max_age:
+      minutes: 12
+    sampling_size: 120
+    precision: 3
+
+template:
+  - sensor:
+      - name: "ASHP COP Rolling 6 min"
+        unique_id: ashp_cop_rolling_6min
+        state_class: measurement
+        availability: >
+          {{ states('sensor.ashp_elec_change_6min') | float(0) >= 0.02
+             and states('sensor.ashp_heat_change_6min') | float(-1) >= 0 }}
+        state: >
+          {% set heat = states('sensor.ashp_heat_change_6min') | float(0) %}
+          {% set elec = states('sensor.ashp_elec_change_6min') | float(0) %}
+          {{ [heat / elec, 8] | min | round(2) }}
+
+      - name: "ASHP COP Rolling 12 min"
+        unique_id: ashp_cop_rolling_12min
+        state_class: measurement
+        availability: >
+          {{ states('sensor.ashp_elec_change_12min') | float(0) >= 0.04
+             and states('sensor.ashp_heat_change_12min') | float(-1) >= 0 }}
+        state: >
+          {% set heat = states('sensor.ashp_heat_change_12min') | float(0) %}
+          {% set elec = states('sensor.ashp_elec_change_12min') | float(0) %}
+          {{ [heat / elec, 8] | min | round(2) }}
