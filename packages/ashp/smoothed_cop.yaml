@@ -81,7 +81,7 @@ template:
         # Opens only after both signals have been above threshold for 2 min.
         # Closes immediately when either drops.
         delay_on:
-          minutes: 2
+          seconds: 90
         state: >
           {{ states('sensor.m5atom_dev_last_minute_heat_generated') | float(0) > 500
              and states('sensor.ashp_last_min_power') | float(0) > 200 }}
