@@ -74,3 +74,21 @@ template:
           {% else %}
             {{ this.state }}
           {% endif %}
+
+  - binary_sensor:
+      - name: "ASHP Steady Run"
+        unique_id: ashp_steady_run
+        # Opens only after both signals have been above threshold for 2 min.
+        # Closes immediately when either drops.
+        delay_on:
+          minutes: 2
+        state: >
+          {{ states('sensor.m5atom_dev_last_minute_heat_generated') | float(0) > 500
+             and states('sensor.ashp_last_min_power') | float(0) > 200 }}
+
+  - sensor:
+      - name: "ASHP COP Instant Gated"
+        unique_id: ashp_cop_instant_gated
+        state_class: measurement
+        availability: "{{ is_state('binary_sensor.ashp_steady_run', 'on') }}"
+        state: "{{ states('sensor.cop_last_min') | float(0) }}"
