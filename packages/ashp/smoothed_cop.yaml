@@ -28,7 +28,7 @@ sensor:
   - platform: statistics
     name: "ASHP heat change 12 min"
     unique_id: ashp_heat_change_12_min
-    entity_id: ssensor.m5atom_dev_total_produced_energy
+    entity_id: sensor.m5atom_dev_total_produced_energy
     state_characteristic: change
     max_age:
       minutes: 12
