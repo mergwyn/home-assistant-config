@@ -16,7 +16,7 @@ template:
           {% set clamp = states('sensor.ashp_clamp_energy') | float(0) %}
           {% set previous = this.attributes.get('last_clamp', clamp) | float(0) %}
           {% set delta = clamp - previous %}
-          {% set dhw = states('sensor.samsung_ashp_dhw_status') | float(-1) %}
+          {% set dhw = states('sensor.heating_ashp_hot_water_status') | float(-1) %}
           {% if delta < 0 %}{% set delta = 0 %}{% endif %}
           {{ (this.state | float(0)) + (delta if (dhw > 0.5) else 0) }}
         attributes:
@@ -36,7 +36,7 @@ template:
           {% set previous = this.attributes.get('last_clamp', clamp) | float(0) %}
           {% set delta = clamp - previous %}
           {% if delta < 0 %}{% set delta = 0 %}{% endif %}
-          {% set dhw = states('sensor.samsung_ashp_dhw_status') | float(-1) %}
+          {% set dhw = states('sensor.heating_ashp_hot_water_status') | float(-1) %}
           {{ (this.state | float(0)) + (delta if (0 <= dhw <= 0.5) else 0) }}
         attributes:
           last_clamp: "{{ states('sensor.ashp_clamp_energy') | float(0) }}"
