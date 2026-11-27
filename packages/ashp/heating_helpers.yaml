@@ -27,6 +27,34 @@ template:
         {{ states("sensor.ashp_rad_circuits_calling") > 0
         and states("sensor.ashp_ufh_circuits_calling") == 0 }}
 
+  - binary_sensor:
+    - name: "ASHP space heating active"
+      unique_id: template_binary_sensor_ashp_space_heating_active
+      device_class: heat
+      state: "{{ states('sensor.m5atom_dev_zone_heating_status') | float(0) > 0 }}"
+
+  - sensor:
+      - name: "Downstairs target temperature"
+        unique_id: template_sensor_downstairs_target_temperature
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state_class: measurement
+        icon: mdi:thermometer
+        state: "{{ state_attr('climate.downstairs', 'temperature') }}"
+        availability: "{{ state_attr('climate.downstairs', 'temperature') is not none }}"
+
+  - sensor:
+      - name: Downstairs Average Temperature
+        unique_id: template_sensor_downstairs_average_temperature
+        unit_of_measurement: °C
+        device_class: temperature
+        state: "{{ state_attr('climate.downstairs', 'current_temperature') | float(0) }}"
+      - name: Downstairs Average Humidity
+        unique_id: downstairs_average_humidity
+        unit_of_measurement: '%'
+        device_class: humidity
+        state: "{{ state_attr('climate.downstairs', 'current_humidity') | float(0) }}"
+
   - sensor:
     - name: ASHP Total Energy Consumed Adjusted
       unique_id: template_sensor_total_energy_consumed_adjusted
@@ -38,7 +66,6 @@ template:
         and states("sensor.ashp_clamp_energy") != "unknown" }}
       state: >
         {{ (states('sensor.ashp_clamp_energy') | float(0) - 604.930 + 13254.418) | float(0) }}
-
 
   - sensor:
     - name: ASHP COP - Daily Clamp

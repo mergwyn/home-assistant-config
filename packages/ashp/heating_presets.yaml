@@ -8,7 +8,6 @@ input_number:
     step: 0.5
     unit_of_measurement: °C
     icon: mdi:thermometer-plus
-
   downstairs_comfort:
     name: Downstairs Comfort Temperature
     min: 7
@@ -16,7 +15,6 @@ input_number:
     step: 0.5
     unit_of_measurement: °C
     icon: mdi:thermometer
-
   downstairs_eco:
     name: Downstairs Eco Temperature
     min: 7
@@ -32,7 +30,6 @@ input_number:
     step: 0.5
     unit_of_measurement: °C
     icon: mdi:thermometer-plus
-
   landing_thermostat_comfort:
     name: Upstairs Comfort Temperature
     min: 7
@@ -40,7 +37,6 @@ input_number:
     step: 0.5
     unit_of_measurement: °C
     icon: mdi:thermometer
-
   landing_thermostat_eco:
     name: Upstairs Eco Temperature
     min: 7
@@ -49,138 +45,63 @@ input_number:
     unit_of_measurement: °C
     icon: mdi:leaf
 
-template:
-  - binary_sensor:
-      - name: "ASHP space heating active"
-        unique_id: ashp_space_heating_active
-        device_class: heat
-        state: "{{ states('sensor.m5atom_dev_zone_heating_status') | float(0) > 0 }}"
-  - sensor:
-      - name: "Downstairs target temperature"
-        unique_id: downstairs_target_temperature
-        unit_of_measurement: "°C"
-        device_class: temperature
-        state_class: measurement
-        icon: mdi:thermometer
-        state: "{{ state_attr('climate.downstairs', 'temperature') }}"
-        availability: "{{ state_attr('climate.downstairs', 'temperature') is not none }}"
-  - sensor:
-      - name: Downstairs Average Temperature
-        unique_id: downstairs_average_temperature
-        unit_of_measurement: °C
-        device_class: temperature
-        state: "{{ state_attr('climate.downstairs', 'current_temperature') | float(0) }}"
-
-      - name: Downstairs Average Humidity
-        unique_id: downstairs_average_humidity
-        unit_of_measurement: '%'
-        device_class: humidity
-        state: "{{ state_attr('climate.downstairs', 'current_humidity') | float(0) }}"
+  dhw_boost:
+    name: DWH Boost Temperature
+    min: 30
+    max: 60
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:thermometer-plus
+  dhw_legionella:
+    name: DWH Legionella Temperature
+    min: 30
+    max: 60
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:bottle-tonic-skull
+  dhw_holiday_temp:
+    name: DWH Holiday Temperature
+    min: 30
+    max: 60
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:water-hermometer
+  dhw_setback:
+    name: DWH Setback Temperature
+    min: 0
+    max: 10
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:temperature-celsius
 
 automation:
   - alias: Initialise Heating Helper Defaults
-    trigger:
-      - platform: homeassistant
+    triggers:
+      - trigger: homeassistant
         event: start
-    action:
-      - alias: Downstairs Boost
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.downstairs_boost
-                state: unknown
-              - condition: state
-                entity_id: input_number.downstairs_boost
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.downstairs_boost
-            data:
-              value: 22.5
-
-      - alias: Downstairs Comfort
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.downstairs_comfort
-                state: unknown
-              - condition: state
-                entity_id: input_number.downstairs_comfort
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.downstairs_comfort
-            data:
-              value: 21
-
-      - alias: Downstairs Eco
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.downstairs_eco
-                state: unknown
-              - condition: state
-                entity_id: input_number.downstairs_eco
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.downstairs_eco
-            data:
-              value: 19
-
-      - alias: Upstairs Boost
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.landing_thermostat_boost
-                state: unknown
-              - condition: state
-                entity_id: input_number.landing_thermostat_boost
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.landing_thermostat_boost
-            data:
-              value: 20.5
-
-      - alias: Upstairs Comfort
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.landing_thermostat_comfort
-                state: unknown
-              - condition: state
-                entity_id: input_number.landing_thermostat_comfort
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.landing_thermostat_comfort
-            data:
-              value: 19
-
-      - alias: Upstairs Eco
-        if:
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: input_number.landing_thermostat_eco
-                state: unknown
-              - condition: state
-                entity_id: input_number.landing_thermostat_eco
-                state: unavailable
-        then:
-          - service: input_number.set_value
-            target:
-              entity_id: input_number.landing_thermostat_eco
-            data:
-              value: 17.5
+    variables:
+      defaults:
+        input_number.downstairs_boost: 22.5
+        input_number.downstairs_comfort: 21
+        input_number.downstairs_eco: 19
+        input_number.landing_thermostat_boost: 20.5
+        input_number.landing_thermostat_comfort: 19
+        input_number.landing_thermostat_eco: 17.5
+        input_number.dhw_boost: 47.5
+        input_number.dhw_legionella: 55
+        input_number.dhw_holiday_temp: 30
+        input_number.dhw_setback: 5.5
+    actions:
+      - repeat:
+          for_each: "{{ defaults | list }}"
+          sequence:
+            - if:
+                - condition: template
+                  value_template: "{{ states(repeat.item) in ['unknown', 'unavailable'] }}"
+              then:
+                - action: input_number.set_value
+                  continue_on_error: true
+                  target:
+                    entity_id: "{{ repeat.item }}"
+                  data:
+                    value: "{{ defaults[repeat.item] }}"
