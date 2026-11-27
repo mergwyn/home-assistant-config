@@ -46,28 +46,27 @@ input_number:
     icon: mdi:leaf
 
   dhw_boost:
-    name: DWH Boost Temperature
+    name: DHW Boost Temperature
     min: 30
     max: 60
     step: 0.5
     unit_of_measurement: °C
     icon: mdi:thermometer-plus
   dhw_legionella:
-    name: DWH Legionella Temperature
     min: 30
     max: 60
     step: 0.5
     unit_of_measurement: °C
     icon: mdi:bottle-tonic-skull
   dhw_holiday_temp:
-    name: DWH Holiday Temperature
+    name: DHW Holiday Temperature
     min: 30
     max: 60
     step: 0.5
     unit_of_measurement: °C
     icon: mdi:water-hermometer
   dhw_setback:
-    name: DWH Setback Temperature
+    name: DHW Setback Temperature
     min: 0
     max: 10
     step: 0.5
