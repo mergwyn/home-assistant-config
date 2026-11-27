@@ -10,7 +10,7 @@ template:
         and states("sensor.ashp_rad_circuits_calling") != "unknown"
         }}
       state: >
-        {{ states("sensor.ashp_rad_circuits_calling") > 0 }}
+        {{ states("sensor.ashp_rad_circuits_calling") == 1 }}
 
   - binary_sensor:
     - name: Only Upstairs Heating Active
@@ -24,7 +24,7 @@ template:
         and states("sensor.ashp_ufh_circuits_calling") != "unknown"
         }}
       state: >
-        {{ states("sensor.ashp_rad_circuits_calling") > 0
+        {{ states("sensor.ashp_rad_circuits_calling") == 1
         and states("sensor.ashp_ufh_circuits_calling") == 0 }}
 
   - binary_sensor:
