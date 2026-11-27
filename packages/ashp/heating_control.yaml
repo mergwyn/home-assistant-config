@@ -271,6 +271,58 @@ automation:
           duration: '00:30:00'
     mode: single
 
+  - alias: Adjust WL Offset
+    description: ''
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.upstairs_heating_active
+        for: &offset_delay
+          hours: 0
+          minutes: 0
+          seconds: 30
+        id: Boost On
+        to:
+          - 'on'
+      - trigger: state
+        entity_id:
+          - binary_sensor.upstairs_heating_active
+        for: *offset_delay
+        id: Boost Off
+        to:
+          - 'off'
+    conditions: []
+    actions:
+      - choose:
+          - conditions:
+              - condition: trigger
+                id:
+                  - Boost On
+            sequence:
+              - action: notify.all_devices
+                data:
+                  message: Setting WL Offset to 4
+                enabled: false
+              - action: number.set_value
+                target:
+                  entity_id: number.m5atom_dev_water_law_offset
+                data:
+                  value: 4
+          - conditions:
+              - condition: trigger
+                id:
+                  - Boost Off
+            sequence:
+              - action: notify.all_devices
+                data:
+                  message: Setting WL Offset to 0
+                enabled: false
+              - action: number.set_value
+                target:
+                  entity_id: number.m5atom_dev_water_law_offset
+                data:
+                  value: 0
+
 script:
   update_climate:
     alias: Update Climate
