@@ -15,6 +15,21 @@ template:
         {{ state_attr('climate.landing_thermostat', 'hvac_action') == 'heating'
         and state_attr('climate.downstairs', 'hvac_action') == 'idle' }}
 
+  - binary_sensor:
+    - name: Only Upstairs Heating Active
+      unique_id: template_binary_sensor_only_upstairs_heating_active
+      icon: mdi:toggle-switch
+      availability: >
+        {{
+        states("sensor.ashp_rad_circuits_calling") != "unavailable"
+        and states("sensor.ashp_rad_circuits_calling") != "unknown"
+        and states("sensor.ashp_ufh_circuits_calling") != "unavailable"
+        and states("sensor.ashp_ufh_circuits_calling") != "unknown"
+        }}
+      state: >
+        {{ states("sensor.ashp_rad_circuits_calling") > 0
+        and states("sensor.ashp_ufh_circuits_calling") == 0 }}
+
   - sensor:
     - name: ASHP Total Energy Consumed Adjusted
       unique_id: template_sensor_total_energy_consumed_adjusted
