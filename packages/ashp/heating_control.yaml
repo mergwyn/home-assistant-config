@@ -272,56 +272,29 @@ automation:
     mode: single
 
   - alias: Adjust WL Offset
+    id: adjust_wl_offset
     description: ''
+    variables:
+      offset: 4
     triggers:
       - trigger: state
-        entity_id:
-          - binary_sensor.upstairs_heating_active
-        for: &offset_delay
-          hours: 0
-          minutes: 0
+        entity_id: binary_sensor.upstairs_heating_active
+        for:
           seconds: 30
-        id: Boost On
-        to:
-          - 'on'
-      - trigger: state
-        entity_id:
-          - binary_sensor.upstairs_heating_active
-        for: *offset_delay
-        id: Boost Off
-        to:
-          - 'off'
-    conditions: []
     actions:
-      - choose:
-          - conditions:
-              - condition: trigger
-                id:
-                  - Boost On
-            sequence:
-              - action: notify.all_devices
-                data:
-                  message: Setting WL Offset to 4
-                enabled: false
-              - action: number.set_value
-                target:
-                  entity_id: number.m5atom_dev_water_law_offset
-                data:
-                  value: 4
-          - conditions:
-              - condition: trigger
-                id:
-                  - Boost Off
-            sequence:
-              - action: notify.all_devices
-                data:
-                  message: Setting WL Offset to 0
-                enabled: false
-              - action: number.set_value
-                target:
-                  entity_id: number.m5atom_dev_water_law_offset
-                data:
-                  value: 0
+      - variables:
+          new_offset: >
+            {{ offset if is_state('binary_sensor.upstairs_heating_active', 'on') else 0 }}
+      - action: notify.all_devices
+        enabled: true
+        data:
+          message: "Setting WL Offset to {{ new_offset }}"
+      - action: number.set_value
+        target:
+          entity_id: number.m5atom_dev_water_law_offset
+        data:
+          value: "{{ new_offset }}"
+    mode: restart
 
 script:
   update_climate:
