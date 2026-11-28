@@ -1,0 +1,84 @@
+---
+# Heating experiment - Home Assistant package
+#
+# Install:
+#   1. Save as <config>/packages/heating_experiment.yaml
+#   2. In configuration.yaml add (if not already present):
+#        homeassistant:
+#          packages: !include_dir_named packages
+#   3. Replace the placeholder entity names below:
+#        sensor.ashp_electricity_kwh   cumulative electricity in (total_increasing)
+#        sensor.ashp_heat_output_kwh   cumulative heat out (total_increasing)
+#        sensor.outdoor_temperature    outdoor temperature
+#   4. Settings > System > Check configuration, then restart.
+#
+# Use: change input_select.heating_experiment_mode just after midnight,
+# at the same time as you change the setting on the heat pump.
+#
+# Output: heating_experiment.csv in the config directory, one line per day:
+#   date, mode, elec_kwh, heat_kwh, heating_degree_days, mean_wl_offset
+# Daily COP = heat_kwh / elec_kwh
+# Electricity per degree day = elec_kwh / heating_degree_days
+
+input_select:
+  heating_experiment_mode:
+    name: Heating experiment mode
+    options:
+      - "1-baseline"
+      - "3-WL2"
+      - "4-WL3"
+      - "2-WL1"
+
+sensor:
+  # Rolling 24 h mean outdoor temperature. At 00:05 it covers the previous day.
+  - platform: statistics
+    name: "Outdoor temp 24h mean"
+    entity_id: sensor.outdoor_temperature
+    state_characteristic: mean
+    max_age:
+      hours: 24
+    sampling_size: 5000
+
+  # Rolling 24 h mean of the WL offset. At 00:05 it covers the previous day.
+  - platform: statistics
+    name: "WL offset 24h mean"
+    entity_id: number.m5atom_dev_water_law_offset
+    state_characteristic: mean
+    max_age:
+      hours: 24
+    sampling_size: 5000
+
+utility_meter:
+  ashp_elec_daily:
+    source: sensor.ashp_electricity_kwh
+    cycle: daily
+  ashp_heat_daily:
+    source: sensor.ashp_heat_output_kwh
+    cycle: daily
+
+# The file notifier setup varies by HA version. If this fails, use
+# the File integration in the UI or another logging method.
+notify:
+  - name: heating_log
+    platform: file
+    filename: heating_experiment.csv
+    timestamp: false
+
+automation:
+  - alias: "Heating experiment daily log"
+    trigger:
+      - platform: time
+        at: "00:05:00"
+    action:
+      - service: notify.heating_log
+        data:
+          message: >
+            {{ (now() - timedelta(days=1)).date() }},
+            {{ states('input_select.heating_experiment_mode') }},
+            {{ state_attr('sensor.ashp_elec_daily', 'last_period') }},
+            {{ state_attr('sensor.ashp_heat_daily', 'last_period') }},
+            {{ ([15.5 - states('sensor.outdoor_temp_24h_mean') | float(15.5), 0] | max) | round(2) }},
+            {{ states('sensor.wl_offset_24h_mean') }}
+
+# Not covered (take from the recorder or history export):
+# compressor starts, mean delta T, room min/mean/max temperatures.
