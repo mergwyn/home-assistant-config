@@ -26,7 +26,6 @@ emoncms_history:
     - sensor.emoncms_flow_rate
     - sensor.emoncms_flow_temperature
     - sensor.emoncms_return_temperature
-    - sensor.emoncms_defrost_active
     - sensor.emoncms_room_temperature
 
 # TODO add
@@ -111,12 +110,6 @@ template:
         unit_of_measurement: °C
         state: >
           {{ states('sensor.m5atom_dev_flow_temp_return') | float(0) }}
-
-      - name: EmonCMS Defrost Active
-        unique_id: template_sensor_emoncms_defrost_active
-        state_class: measurement
-        state: >
-          {{ states('binary_sensor.heating_ashp_defrost_active') | float(0) }}
 
       - name: EmonCMS Room temperature
         unique_id: template_sensor_emoncms_room_temperature
